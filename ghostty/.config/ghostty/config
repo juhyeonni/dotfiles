@@ -46,12 +46,6 @@ clipboard-read = ask
 clipboard-paste-protection = false
 
 # ==============================================
-#  Quick Terminal
-# ==============================================
-quick-terminal-position = top
-quick-terminal-animation-duration = 0.2
-
-# ==============================================
 #  Misc
 # ==============================================
 confirm-close-surface = false
@@ -71,9 +65,6 @@ keybind = cmd+t=text:\x01c
 keybind = cmd+w=text:\x01x
 keybind = ctrl+tab=text:\x01n
 keybind = ctrl+shift+tab=text:\x01p
-
-# Quick Terminal toggle
-keybind = global:cmd+grave_accent=toggle_quick_terminal
 
 # Prompt jump (shell integration)
 keybind = cmd+up=jump_to_prompt:-1

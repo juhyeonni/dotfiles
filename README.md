@@ -9,6 +9,7 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | zsh | `.zshrc`, `.zprofile` |
 | nvim | `.config/nvim/` (LazyVim) |
 | tmux | `.config/tmux/tmux.conf` |
+| ghostty | `.config/ghostty/config` |
 | wezterm | `.config/wezterm/` |
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` |
@@ -19,7 +20,12 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 brew install stow
 git clone <repo-url> ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux wezterm git karabiner
+
+# macOS
+stow zsh nvim tmux git ghostty karabiner
+
+# Windows (WSL)
+stow zsh nvim tmux git wezterm
 ```
 
 ## Restow (after changes)

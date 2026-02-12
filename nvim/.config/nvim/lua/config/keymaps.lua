@@ -82,4 +82,3 @@ keymap.set("n", "<leader>i", function()
 end)
 
 keymap.set("n", "<leader>cc", "<cmd>ClaudeCode<CR>", { desc = "Toggle Claude Code" })
-keymap.set("t", "<C-\\><C-\\>", "<cmd>ClaudeCode<CR>", { desc = "Toggle Claude Code" })

@@ -337,7 +337,7 @@ return {
 				},
 				keymaps = {
 					toggle = {
-						normal = "<leader>cc",
+						normal = "<C-\\>",
 						terminal = "<C-\\>",
 					},
 				},

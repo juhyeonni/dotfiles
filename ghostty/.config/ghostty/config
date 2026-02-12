@@ -1,0 +1,80 @@
+# ==============================================
+#  Theme
+# ==============================================
+theme = Kanagawa Wave
+
+# ==============================================
+#  Font
+# ==============================================
+font-family = 0xProto Nerd Font
+font-size = 14
+font-thicken = true
+adjust-cell-height = 1
+
+# ==============================================
+#  Window
+# ==============================================
+window-padding-x = 8
+window-padding-y = 8
+window-padding-balance = true
+background-opacity = 0.92
+background-blur = 16
+macos-titlebar-style = hidden
+
+# ==============================================
+#  Cursor
+# ==============================================
+cursor-style = block
+cursor-style-blink = false
+
+# ==============================================
+#  Mouse
+# ==============================================
+mouse-hide-while-typing = true
+
+# ==============================================
+#  Shell Integration
+# ==============================================
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+
+# ==============================================
+#  Clipboard
+# ==============================================
+copy-on-select = clipboard
+clipboard-read = ask
+clipboard-paste-protection = false
+
+# ==============================================
+#  Quick Terminal
+# ==============================================
+quick-terminal-position = top
+quick-terminal-animation-duration = 0.2
+
+# ==============================================
+#  Misc
+# ==============================================
+confirm-close-surface = false
+macos-option-as-alt = true
+scrollback-limit = 100000
+title-report = false
+
+# ==============================================
+#  Keybindings
+# ==============================================
+keybind = cmd+shift+r=reload_config
+
+keybind = shift+enter=text:\n
+
+# tmux integration
+keybind = cmd+t=text:\x01c
+keybind = cmd+w=text:\x01x
+keybind = ctrl+tab=text:\x01n
+keybind = ctrl+shift+tab=text:\x01p
+
+# Quick Terminal toggle
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# Prompt jump (shell integration)
+keybind = cmd+up=jump_to_prompt:-1
+keybind = cmd+down=jump_to_prompt:1

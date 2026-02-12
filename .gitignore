@@ -1,0 +1,12 @@
+# Nvim auto-generated
+nvim/.config/nvim/lazy-lock.json
+nvim/.config/nvim/lazy-lock.json.bak
+nvim/.config/nvim/.DS_Store
+nvim/.config/nvim/lua/.DS_Store
+
+# OS
+.DS_Store
+
+# Karabiner auto-backup
+karabiner/.config/karabiner/automatic_backups/
+karabiner/.config/karabiner/assets/

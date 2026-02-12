@@ -58,8 +58,6 @@ title-report = false
 # ==============================================
 keybind = cmd+shift+r=reload_config
 
-keybind = shift+enter=text:\n
-
 # tmux integration
 keybind = cmd+t=text:\x01c
 keybind = cmd+w=text:\x01x

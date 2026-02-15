@@ -1,11 +1,6 @@
 local M = {}
 
 local function get_visual_selection()
-	local mode = vim.fn.mode()
-	if mode ~= "v" and mode ~= "V" and mode ~= "\22" then
-		return nil
-	end
-
 	local start_pos = vim.api.nvim_buf_get_mark(0, "<")
 	local end_pos = vim.api.nvim_buf_get_mark(0, ">")
 	local start_row, start_col = start_pos[1], start_pos[2]
@@ -21,22 +16,30 @@ local function get_visual_selection()
 	end
 
 	local lines = vim.api.nvim_buf_get_text(0, start_row - 1, start_col, end_row - 1, end_col + 1, {})
-	return table.concat(lines, "\n")
+	if not lines or #lines == 0 then
+		return nil
+	end
+
+	local text = table.concat(lines, "\n")
+	if text == "" then
+		return nil
+	end
+
+	return text
 end
 
-local function build_prompt(question)
+local function build_prompt(question, selected_text)
 	local file_path = vim.api.nvim_buf_get_name(0)
 	if file_path == "" then
 		file_path = "[No Name]"
 	end
 
-	local selection = get_visual_selection()
-	if selection and selection ~= "" then
+	if selected_text and selected_text ~= "" then
 		return string.format(
 			"Question about selected code in %s:\n\n%s\n\n```\n%s\n```",
 			file_path,
 			question,
-			selection
+			selected_text
 		)
 	end
 
@@ -49,18 +52,69 @@ local function build_prompt(question)
 	)
 end
 
-local function ask_claude()
+local function open_claude_code_window()
+	if vim.fn.exists(":ClaudeCode") == 2 then
+		vim.cmd("ClaudeCode")
+		return true
+	end
+
+	local ok, claude_code = pcall(require, "claude-code")
+	if not ok then
+		return false
+	end
+
+	if type(claude_code.toggle) == "function" then
+		claude_code.toggle()
+		return true
+	end
+
+	if type(claude_code.open) == "function" then
+		claude_code.open()
+		return true
+	end
+
+	return false
+end
+
+local function find_claude_terminal_job_id()
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) then
+			local is_terminal = vim.bo[buf].buftype == "terminal"
+			if is_terminal then
+				local name = vim.api.nvim_buf_get_name(buf):lower()
+				local filetype = vim.bo[buf].filetype:lower()
+				if name:find("claude") or filetype:find("claude") then
+					local ok, job_id = pcall(vim.api.nvim_buf_get_var, buf, "terminal_job_id")
+					if ok and job_id then
+						return job_id
+					end
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
+local function ask_claude(selected_text)
 	vim.ui.input({ prompt = "Ask Claude Code: " }, function(question)
 		if not question or question == "" then
 			return
 		end
 
-		local prompt = build_prompt(question)
-		local command = string.format("printf %%s %s | claude-code", vim.fn.shellescape(prompt))
+		if not open_claude_code_window() then
+			vim.notify("claude-code.nvim 창을 열 수 없습니다.", vim.log.levels.ERROR)
+			return
+		end
 
-		vim.cmd("botright vsplit")
-		vim.cmd("terminal " .. command)
-		vim.cmd("startinsert")
+		local prompt = build_prompt(question, selected_text)
+		local job_id = find_claude_terminal_job_id()
+		if not job_id then
+			vim.notify("Claude Code 터미널을 찾지 못했습니다.", vim.log.levels.ERROR)
+			return
+		end
+
+		vim.api.nvim_chan_send(job_id, prompt .. "\n")
 	end)
 end
 
@@ -112,12 +166,19 @@ end
 
 function M.code_action_with_claude()
 	local mode = vim.fn.mode()
+	local selected_text = nil
+	if mode == "v" or mode == "V" or mode == "\22" then
+		selected_text = get_visual_selection()
+	end
+
 	local lsp_actions = get_code_actions(mode)
 	local items = {
 		{
 			title = "Ask Claude Code about selection/file",
 			kind = "claude-code",
-			handler = ask_claude,
+			handler = function()
+				ask_claude(selected_text)
+			end,
 		},
 	}
 

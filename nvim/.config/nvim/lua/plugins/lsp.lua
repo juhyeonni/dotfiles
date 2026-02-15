@@ -134,6 +134,9 @@ return {
 					vim.keymap.set("n", "gd", function()
 						require("telescope.builtin").lsp_definitions({ reuse_win = false })
 					end, { buffer = bufnr, desc = "Goto Definition" })
+					vim.keymap.set({ "n", "x" }, "<leader>ca", function()
+						require("util.claude_code_action").code_action_with_claude()
+					end, { buffer = bufnr, desc = "Code Action (with Claude Code)" })
 				end,
 			})
 		end,

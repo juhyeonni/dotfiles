@@ -28,30 +28,6 @@ local function get_visual_selection()
 	return text
 end
 
-local function build_prompt(question, selected_text)
-	local file_path = vim.api.nvim_buf_get_name(0)
-	if file_path == "" then
-		file_path = "[No Name]"
-	end
-
-	if selected_text and selected_text ~= "" then
-		return string.format(
-			"Question about selected code in %s:\n\n%s\n\n```\n%s\n```",
-			file_path,
-			question,
-			selected_text
-		)
-	end
-
-	local file_contents = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-	return string.format(
-		"Question about file %s:\n\n%s\n\n```\n%s\n```",
-		file_path,
-		question,
-		file_contents
-	)
-end
-
 local function open_claude_code_window()
 	if vim.fn.exists(":ClaudeCode") == 2 then
 		vim.cmd("ClaudeCode")
@@ -76,6 +52,20 @@ local function open_claude_code_window()
 	return false
 end
 
+local function find_claude_terminal_win()
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		if vim.bo[buf].buftype == "terminal" then
+			local name = vim.api.nvim_buf_get_name(buf):lower()
+			local ft = vim.bo[buf].filetype:lower()
+			if name:find("claude") or ft:find("claude") then
+				return win
+			end
+		end
+	end
+	return nil
+end
+
 local function find_claude_terminal_job_id()
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(buf) then
@@ -97,25 +87,40 @@ local function find_claude_terminal_job_id()
 end
 
 local function ask_claude(selected_text)
-	vim.ui.input({ prompt = "Ask Claude Code: " }, function(question)
-		if not question or question == "" then
-			return
-		end
+	local file_path = vim.api.nvim_buf_get_name(0)
+	if file_path == "" then
+		file_path = "[No Name]"
+	end
 
+	-- Focus existing Claude Code window, or open a new one
+	local claude_win = find_claude_terminal_win()
+	if claude_win then
+		vim.api.nvim_set_current_win(claude_win)
+	else
 		if not open_claude_code_window() then
-			vim.notify("claude-code.nvim 창을 열 수 없습니다.", vim.log.levels.ERROR)
+			vim.notify("Failed to open claude-code.nvim window", vim.log.levels.ERROR)
 			return
 		end
+	end
 
-		local prompt = build_prompt(question, selected_text)
+	vim.defer_fn(function()
 		local job_id = find_claude_terminal_job_id()
 		if not job_id then
-			vim.notify("Claude Code 터미널을 찾지 못했습니다.", vim.log.levels.ERROR)
+			vim.notify("Could not find Claude Code terminal", vim.log.levels.ERROR)
 			return
 		end
 
-		vim.api.nvim_chan_send(job_id, prompt .. "\n")
-	end)
+		if selected_text and selected_text ~= "" then
+			-- Use Shift+Enter (CSI u sequence) for newlines to avoid auto-submit
+			local se = "\x1b[13;2u"
+			local code_escaped = selected_text:gsub("\n", se)
+			local input = file_path .. ":" .. se .. "```" .. se .. code_escaped .. se .. "```" .. se
+			vim.api.nvim_chan_send(job_id, input)
+		end
+
+		-- Enter terminal insert mode so user can type directly
+		vim.cmd("startinsert")
+	end, 200)
 end
 
 local function get_code_actions(mode)

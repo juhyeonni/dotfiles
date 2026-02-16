@@ -1,21 +1,23 @@
 local M = {}
 
+-- Expects '< '> marks to be set (call after exiting visual mode)
 local function get_visual_selection()
-	local start_pos = vim.api.nvim_buf_get_mark(0, "<")
-	local end_pos = vim.api.nvim_buf_get_mark(0, ">")
-	local start_row, start_col = start_pos[1], start_pos[2]
-	local end_row, end_col = end_pos[1], end_pos[2]
+	local sp = vim.api.nvim_buf_get_mark(0, "<")
+	local ep = vim.api.nvim_buf_get_mark(0, ">")
+	local srow, scol = sp[1], sp[2]
+	local erow, ecol = ep[1], ep[2]
 
-	if start_row == 0 or end_row == 0 then
+	if srow == 0 or erow == 0 then
 		return nil
 	end
 
-	if start_row > end_row or (start_row == end_row and start_col > end_col) then
-		start_row, end_row = end_row, start_row
-		start_col, end_col = end_col, start_col
+	if srow > erow or (srow == erow and scol > ecol) then
+		srow, erow = erow, srow
+		scol, ecol = ecol, scol
 	end
 
-	local lines = vim.api.nvim_buf_get_text(0, start_row - 1, start_col, end_row - 1, end_col + 1, {})
+	-- nvim_buf_get_text: 0-indexed rows/cols, end_col exclusive
+	local lines = vim.api.nvim_buf_get_text(0, srow - 1, scol, erow - 1, ecol + 1, {})
 	if not lines or #lines == 0 then
 		return nil
 	end
@@ -25,7 +27,7 @@ local function get_visual_selection()
 		return nil
 	end
 
-	return text
+	return text, srow, erow
 end
 
 local function open_claude_code_window()
@@ -86,7 +88,7 @@ local function find_claude_terminal_job_id()
 	return nil
 end
 
-local function ask_claude(selected_text)
+local function ask_claude(selected_text, start_line, end_line)
 	local file_path = vim.api.nvim_buf_get_name(0)
 	if file_path == "" then
 		file_path = "[No Name]"
@@ -110,16 +112,19 @@ local function ask_claude(selected_text)
 			return
 		end
 
-		if selected_text and selected_text ~= "" then
-			-- Use Shift+Enter (CSI u sequence) for newlines to avoid auto-submit
-			local se = "\x1b[13;2u"
-			local code_escaped = selected_text:gsub("\n", se)
-			local input = file_path .. ":" .. se .. "```" .. se .. code_escaped .. se .. "```" .. se
-			vim.api.nvim_chan_send(job_id, input)
-		end
-
-		-- Enter terminal insert mode so user can type directly
+		-- Enter terminal insert mode first
 		vim.cmd("startinsert")
+
+		if selected_text and selected_text ~= "" then
+			local range = ""
+			if start_line and end_line then
+				range = ":" .. start_line .. "-" .. end_line
+			end
+			local content = file_path .. range .. ":\n```\n" .. selected_text .. "\n```\n"
+			vim.schedule(function()
+				vim.api.nvim_paste(content, true, -1)
+			end)
+		end
 	end, 200)
 end
 
@@ -169,20 +174,22 @@ local function apply_action(item)
 	end
 end
 
-function M.code_action_with_claude()
-	local mode = vim.fn.mode()
+function M.code_action_with_claude(from_visual)
 	local selected_text = nil
-	if mode == "v" or mode == "V" or mode == "\22" then
-		selected_text = get_visual_selection()
+
+	local start_line, end_line
+	if from_visual then
+		-- '< '> marks are already set by :<C-u> in the keymap
+		selected_text, start_line, end_line = get_visual_selection()
 	end
 
-	local lsp_actions = get_code_actions(mode)
+	local lsp_actions = get_code_actions(from_visual and "v" or "n")
 	local items = {
 		{
 			title = "Ask Claude Code about selection/file",
 			kind = "claude-code",
 			handler = function()
-				ask_claude(selected_text)
+				ask_claude(selected_text, start_line, end_line)
 			end,
 		},
 	}

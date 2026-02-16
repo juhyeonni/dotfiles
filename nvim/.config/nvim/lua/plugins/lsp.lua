@@ -134,9 +134,16 @@ return {
 					vim.keymap.set("n", "gd", function()
 						require("telescope.builtin").lsp_definitions({ reuse_win = false })
 					end, { buffer = bufnr, desc = "Goto Definition" })
-					vim.keymap.set({ "n", "x" }, "<leader>ca", function()
-						require("util.claude_code_action").code_action_with_claude()
+					vim.keymap.set("n", "<leader>ca", function()
+						require("util.claude_code_action").code_action_with_claude(false)
 					end, { buffer = bufnr, desc = "Code Action (with Claude Code)" })
+					-- :<C-u> exits visual mode and sets '< '> marks reliably
+					vim.keymap.set(
+						"x",
+						"<leader>ca",
+						[[:<C-u>lua require("util.claude_code_action").code_action_with_claude(true)<CR>]],
+						{ buffer = bufnr, silent = true, desc = "Code Action (with Claude Code)" }
+					)
 				end,
 			})
 		end,

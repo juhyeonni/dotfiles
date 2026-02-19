@@ -74,15 +74,14 @@ return {
 	{
 		"rcarriga/nvim-notify",
 		opts = {
-			timeout = 3000, -- 3초 후 사라짐
-			fps = 60, -- 기본값 30 → 60으로 증가 (더 부드러운 애니메이션)
-			-- fps = 120, -- 매우 부드럽게 하려면 이걸로 변경
-			stages = "fade_in_slide_out", -- 애니메이션 스타일
-			render = "wrapped-compact", -- "default" | "wrapped-compact" | "minimal" (wrap 지원)
-			top_down = true, -- true = 상단에서 아래로 (원래대로)
-			max_width = 60, -- 최대 너비 60자 (조정 가능: 50, 70, 80 등)
-			max_height = 10, -- 최대 높이 (줄 수)
-			minimum_width = 30, -- 최소 너비
+			timeout = 3000,
+			fps = 60,
+			stages = "fade_in_slide_out",
+			render = "wrapped-compact",
+			top_down = true,
+			max_width = 60,
+			max_height = 10,
+			minimum_width = 30,
 		},
 	},
 
@@ -91,10 +90,8 @@ return {
 		opts = {
 			scroll = { enabled = false },
 		},
-		keys = {},
 	},
 
-	-- buffer line
 	{
 		"akinsho/bufferline.nvim",
 		event = "VeryLazy",
@@ -105,7 +102,6 @@ return {
 		opts = {
 			options = {
 				mode = "tabs",
-				-- separator_style = "slant",
 				show_buffer_close_icons = false,
 				show_close_icon = false,
 			},
@@ -115,16 +111,16 @@ return {
 	-- filename
 	{
 		"b0o/incline.nvim",
-		dependencies = { "craftzdog/solarized-osaka.nvim" },
+		dependencies = { "rebelot/kanagawa.nvim" },
 		event = "BufReadPre",
 		priority = 1200,
 		config = function()
-			local colors = require("solarized-osaka.colors").setup()
+			local palette = require("kanagawa.colors").setup({ theme = "wave" }).palette
 			require("incline").setup({
 				highlight = {
 					groups = {
-						InclineNormal = { guibg = colors.magenta500, guifg = colors.base04, gui = "bold" },
-						InclineNormalNC = { guifg = colors.violet500, guibg = colors.base03 },
+						InclineNormal = { guibg = palette.sakuraPink, guifg = palette.sumiInk0, gui = "bold" },
+						InclineNormalNC = { guifg = palette.springViolet1, guibg = palette.sumiInk4 },
 					},
 				},
 				window = {
@@ -182,39 +178,33 @@ return {
 
 	{
 		"folke/snacks.nvim",
-		opts = function()
-			return {
-				dashboard = {
-					preset = {
-						header = [[
-       _         __                                       _ 
+		opts = {
+			dashboard = {
+				preset = {
+					header = [[
+       _         __                                       _
       (_)__  __ / /_   __  __ ___   ____   ____   ____   (_)
-     / // / / // __ \ / / / // _ \ / __ \ / __ \ / __ \ / / 
-    / // /_/ // / / // /_/ //  __// /_/ // / / // / / // /  
- __/ / \__,_//_/ /_/ \__, / \___/ \____//_/ /_//_/ /_//_/   
-/___/               /____/                                  
+     / // / / // __ \ / / / // _ \ / __ \ / __ \ / __ \ / /
+    / // /_/ // / / // /_/ //  __// /_/ // / / // / / // /
+ __/ / \__,_//_/ /_/ \__, / \___/ \____//_/ /_//_/ /_//_/
+/___/               /____/
             ]],
-					},
 				},
-			}
-		end,
+			},
+		},
 	},
 	{
 		"karb94/neoscroll.nvim",
 		config = function()
 			require("neoscroll").setup({
-				mappings = {}, -- Empty mappings, we'll set them up manually
+				mappings = {},
 				hide_cursor = true,
 				stop_eof = true,
 				respect_scrolloff = false,
 				cursor_scrolls_alone = true,
-				easing_function = "quadratic", -- sine, circular, cubic, quartic, quintic
-				pre_hook = nil,
-				post_hook = nil,
-				performance_mode = false,
+				easing_function = "quadratic",
 			})
 
-			-- 커스텀 스크롤 시간 - Using helper functions instead of set_mappings()
 			local neoscroll = require("neoscroll")
 			local keymap = {
 				["<C-u>"] = function() neoscroll.ctrl_u({ duration = 100 }) end,
@@ -237,19 +227,9 @@ return {
 		"sphamba/smear-cursor.nvim",
 		opts = {
 			distance_stop_animating = 0.8,
-
-			-- Smooth cursor without smear
 			stiffness = 0.5,
 			trailing_stiffness = 0.5,
 			matrix_pixel_threshold = 0.5,
-
-			-- Fire harzard
-			-- cursor_color = "#ff8800",
-			-- stiffness = 0.3,
-			-- trailing_stiffness = 0.1,
-			-- trailing_exponent = 5,
-			-- hide_target_hack = true,
-			-- gamma = 1,
 		},
 	},
 }

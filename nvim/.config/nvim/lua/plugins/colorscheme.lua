@@ -1,15 +1,9 @@
 return {
-	-- {
-	-- 	"craftzdog/solarized-osaka.nvim",
-	-- 	lazy = true,
-	-- 	priority = 1000,
-	-- 	opts = function()
-	-- 		return {
-	-- 			transparent = true,
-	-- 		}
-	-- 	end,
-	-- },
-	--
+	-- Disable LazyVim default themes (kanagawa only)
+	{ "catppuccin/nvim", enabled = false },
+	{ "folke/tokyonight.nvim", enabled = false },
+	{ "craftzdog/solarized-osaka.nvim", enabled = false },
+
 	{
 		"rebelot/kanagawa.nvim",
 		priority = 1000,
@@ -24,7 +18,7 @@ return {
 				},
 			},
 			transparent = true,
-			theme = "dragon",
+			theme = "wave",
 		},
 	},
 }

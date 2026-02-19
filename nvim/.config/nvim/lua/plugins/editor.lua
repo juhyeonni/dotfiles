@@ -20,18 +20,9 @@ return {
 				hsl_color = {
 					pattern = "hsl%(%d+,? %d+%%?,? %d+%%?%)",
 					group = function(_, match)
-						-- Safe loading of solarized-osaka theme utilities
-						local ok, utils = pcall(require, "solarized-osaka.hsl")
-						if not ok then
-							return nil
-						end
-
-						--- @type string, string, string
 						local nh, ns, nl = match:match("hsl%((%d+),? (%d+)%%?,? (%d+)%%?%)")
-						--- @type number?, number?, number?
 						local h, s, l = tonumber(nh), tonumber(ns), tonumber(nl)
-						--- @type string
-						local hex_color = utils.hslToHex(h, s, l)
+						local hex_color = require("craftzdog.hsl").hslToHex(h, s, l)
 						return MiniHipatterns.compute_hex_color_group(hex_color, "bg")
 					end,
 				},
@@ -235,13 +226,12 @@ return {
 			},
 		},
 	},
-	{ "akinsho/toggleterm.nvim", version = "*", config = true },
 
 	{ "wakatime/vim-wakatime", lazy = false },
 
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
-		ft = { "markdown", "codecompanion" },
+		ft = { "markdown" },
 	},
 
 	{
@@ -299,25 +289,21 @@ return {
 	},
 
 	{
-		"nvim-mini/mini.diff",
-		config = function()
-			local diff = require("mini.diff")
-			diff.setup({
-				-- Disabled by default
-				source = diff.gen_source.none(),
-			})
-		end,
-	},
-
-	{
 		"HakonHarnes/img-clip.nvim",
+		opts = {},
+	},
+	{
+		"sindrets/diffview.nvim",
+		cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
+		keys = {
+			{ "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Diffview Open" },
+			{ "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "File History" },
+			{ "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "Branch History" },
+		},
 		opts = {
-			filetypes = {
-				codecompanion = {
-					prompt_for_file_name = false,
-					template = "[Image]($FILE_PATH)",
-					use_absolute_path = true,
-				},
+			view = {
+				default = { winbar_info = true },
+				file_history = { winbar_info = true },
 			},
 		},
 	},

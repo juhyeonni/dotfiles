@@ -1,7 +1,3 @@
--- local discipline = require("craftzdog.discipline")
-
--- discipline.cowboy()
-
 local keymap = vim.keymap
 local opts = { noremap = true, silent = true }
 
@@ -14,30 +10,14 @@ keymap.set("n", "<Leader>c", '"_c')
 keymap.set("n", "<Leader>C", '"_C')
 keymap.set("v", "<Leader>c", '"_c')
 keymap.set("v", "<Leader>C", '"_C')
-keymap.set("n", "<Leader>d", '"_d')
-keymap.set("n", "<Leader>D", '"_D')
-keymap.set("v", "<Leader>d", '"_d')
-keymap.set("v", "<Leader>D", '"_D')
-
--- Increment/decrement
--- keymap.set("n", "+", "<C-a>")
--- keymap.set("n", "-", "<C-x>")
+keymap.set({ "n", "v" }, "<Leader>x", '"_d', { desc = "Delete without register" })
+keymap.set({ "n", "v" }, "<Leader>X", '"_D', { desc = "Delete to EOL without register" })
 
 -- Delete a word backwards
 keymap.set("n", "dw", 'vb"_d')
 
 -- Select all
 keymap.set("n", "<C-a>", "gg<S-v>G")
-
--- Save with root permission (not working for now)
--- vim.api.nvim_create_user_command("W", "w !sudo tee > /dev/null %", {})
-
--- Disable continuations
--- keymap.set("n", "<Leader>o", "o<Esc>^Da", opts)
--- keymap.set("n", "<Leader>O", "O<Esc>^Da", opts)
-
--- Jumplist
--- keymap.set("n", "<C-m>", "<C-i>", opts)
 
 -- New tab
 keymap.set("n", "te", ":tabedit", { desc = "New Tab" })
@@ -47,12 +27,6 @@ keymap.set("n", "<s-tab>", ":tabprev<Return>", opts)
 -- Split window
 keymap.set("n", "ss", ":split<Return>", opts)
 keymap.set("n", "sv", ":vsplit<Return>", opts)
-
--- Move window
--- keymap.set("n", "sh", "<C-w>h")
--- keymap.set("n", "sk", "<C-w>k")
--- keymap.set("n", "sj", "<C-w>j")
--- keymap.set("n", "sl", "<C-w>l")
 
 -- Resize window
 keymap.set("n", "<C-w><left>", "<C-w><")
@@ -70,7 +44,6 @@ keymap.set("n", "<C-k>", function()
 end, opts)
 
 keymap.set("n", "<leader>j", vim.lsp.buf.hover)
-keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
 keymap.set("n", "<leader>q", vim.diagnostic.setloclist, opts)
 
 keymap.set("n", "<leader>r", function()
@@ -80,4 +53,12 @@ end)
 keymap.set("n", "<leader>i", function()
 	require("craftzdog.lsp").toggleInlayHints()
 end)
+
+-- Pass Shift+Enter as CSI u sequence to terminal processes (e.g. Claude Code)
+keymap.set("t", "<S-CR>", "\x1b[13;2u", { noremap = true })
+
+-- Ctrl+Space: show completion menu in insert mode (override <C-@> default)
+keymap.set("i", "<C-@>", function()
+	require("blink.cmp").show()
+end, { desc = "Show completion menu" })
 

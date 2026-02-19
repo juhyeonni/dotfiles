@@ -64,6 +64,9 @@ keybind = cmd+w=text:\x01x
 keybind = ctrl+tab=text:\x01n
 keybind = ctrl+shift+tab=text:\x01p
 
+# Shift+Enter → newline (sends Alt+Enter sequence)
+keybind = shift+enter=text:\x1b\x0d
+
 # Prompt jump (shell integration)
 keybind = cmd+up=jump_to_prompt:-1
 keybind = cmd+down=jump_to_prompt:1

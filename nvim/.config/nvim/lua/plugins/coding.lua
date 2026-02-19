@@ -89,18 +89,12 @@ return {
 		},
 	},
 
+	-- Cmdline completion only (blink.cmp handles insert mode completion)
 	{
 		"hrsh7th/nvim-cmp",
-		event = { "InsertEnter", "CmdLineEnter" },
-		dependencies = {
-			"hrsh7th/cmp-emoji",
-			"hrsh7th/cmp-cmdline",
-		},
+		event = "CmdLineEnter",
+		dependencies = { "hrsh7th/cmp-cmdline" },
 		opts = function(_, opts)
-			-- Add emoji source
-			table.insert(opts.sources, { name = "emoji" })
-
-			-- Setup cmdline completion
 			local cmp = require("cmp")
 			cmp.setup.cmdline(":", {
 				mapping = cmp.mapping.preset.cmdline(),

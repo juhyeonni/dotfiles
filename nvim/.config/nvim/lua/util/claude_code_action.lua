@@ -129,18 +129,39 @@ local function ask_claude(selected_text, start_line, end_line)
 end
 
 local function get_code_actions(mode)
+	local clients = vim.lsp.get_clients({ bufnr = 0 })
+	local offset_encoding = clients[1] and clients[1].offset_encoding or "utf-16"
+
 	local params
 	if mode == "v" or mode == "V" or mode == "\22" then
-		params = vim.lsp.util.make_given_range_params()
+		params = vim.lsp.util.make_given_range_params(nil, nil, 0, offset_encoding)
 	else
-		params = vim.lsp.util.make_range_params()
+		params = vim.lsp.util.make_range_params(0, offset_encoding)
 	end
 
+	local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1
+	local vim_diagnostics = vim.tbl_filter(function(d)
+		return d.lnum == cursor_line
+	end, vim.diagnostic.get(0))
+
+	local lsp_diagnostics = vim.tbl_map(function(d)
+		return {
+			range = {
+				start = { line = d.lnum, character = d.col },
+				["end"] = { line = d.end_lnum or d.lnum, character = d.end_col or d.col },
+			},
+			message = d.message,
+			severity = d.severity,
+			code = d.code,
+			source = d.source,
+		}
+	end, vim_diagnostics)
+
 	params.context = {
-		diagnostics = vim.diagnostic.get(0),
+		diagnostics = lsp_diagnostics,
 	}
 
-	local responses = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 1000) or {}
+	local responses = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 3000) or {}
 	local actions = {}
 
 	for client_id, response in pairs(responses) do

@@ -2,7 +2,6 @@ return {
 	-- tools
 	{
 		"mason-org/mason.nvim",
-		version = "v2.0.0",
 		opts = function(_, opts)
 			vim.list_extend(opts.ensure_installed, {
 				"stylua",
@@ -11,59 +10,44 @@ return {
 				"shellcheck",
 				"shfmt",
 				"tailwindcss-language-server",
-				"typescript-language-server",
 				"css-lsp",
 			})
 		end,
 	},
 
-	-- mason.nvim과 nvim-lspconfig를 연결하는 플러그인
-	{
-		"mason-org/mason-lspconfig.nvim",
-		version = "v2.0.0",
-		dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig" },
-	},
-
 	-- lsp servers
 	{
 		"neovim/nvim-lspconfig",
-		dependencies = { "mason-org/mason.nvim" },
 		opts = {
 			inlay_hints = { enabled = false },
 			---@type lspconfig.options
 			servers = {
 				cssls = {},
 				tailwindcss = {
-					root_dir = function(...)
-						return require("lspconfig.util").root_pattern(".git")(...)
-					end,
+					root_markers = { "tailwind.config.js", "tailwind.config.ts", ".git" },
 				},
-				ts_ls = {
-					root_dir = function(...)
-						return require("lspconfig.util").root_pattern(".git")(...)
-					end,
+				vtsls = {
+					root_markers = { "tsconfig.json", "package.json", "jsconfig.json", ".git" },
 					single_file_support = false,
 					settings = {
 						typescript = {
 							inlayHints = {
-								includeInlayParameterNameHints = "literal",
-								includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-								includeInlayFunctionParameterTypeHints = true,
-								includeInlayVariableTypeHints = false,
-								includeInlayPropertyDeclarationTypeHints = true,
-								includeInlayFunctionLikeReturnTypeHints = true,
-								includeInlayEnumMemberValueHints = true,
+								parameterNames = { enabled = "literals" },
+								parameterTypes = { enabled = true },
+								variableTypes = { enabled = false },
+								propertyDeclarationTypes = { enabled = true },
+								functionLikeReturnTypes = { enabled = true },
+								enumMemberValues = { enabled = true },
 							},
 						},
 						javascript = {
 							inlayHints = {
-								includeInlayParameterNameHints = "all",
-								includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-								includeInlayFunctionParameterTypeHints = true,
-								includeInlayVariableTypeHints = true,
-								includeInlayPropertyDeclarationTypeHints = true,
-								includeInlayFunctionLikeReturnTypeHints = true,
-								includeInlayEnumMemberValueHints = true,
+								parameterNames = { enabled = "all" },
+								parameterTypes = { enabled = true },
+								variableTypes = { enabled = true },
+								propertyDeclarationTypes = { enabled = true },
+								functionLikeReturnTypes = { enabled = true },
+								enumMemberValues = { enabled = true },
 							},
 						},
 					},
@@ -125,15 +109,18 @@ return {
 				},
 			},
 		},
-		config = function(_, opts)
-			-- 사용자 정의 키맵 추가
+		init = function()
+			-- 사용자 정의 키맵 추가 (init으로 LazyVim config 보존)
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(ev)
 					local bufnr = ev.buf
-					vim.keymap.set("n", "gd", function()
-						require("telescope.builtin").lsp_definitions({ reuse_win = false })
-					end, { buffer = bufnr, desc = "Goto Definition" })
+					local client = vim.lsp.get_client_by_id(ev.data.client_id)
+					if client and client:supports_method("textDocument/definition") then
+						vim.keymap.set("n", "gd", function()
+							require("telescope.builtin").lsp_definitions({ reuse_win = false })
+						end, { buffer = bufnr, desc = "Goto Definition" })
+					end
 					vim.keymap.set("n", "<leader>ca", function()
 						require("util.claude_code_action").code_action_with_claude(false)
 					end, { buffer = bufnr, desc = "Code Action (with Claude Code)" })

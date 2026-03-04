@@ -34,14 +34,7 @@ keymap.set("n", "<C-w><right>", "<C-w>>")
 keymap.set("n", "<C-w><up>", "<C-w>+")
 keymap.set("n", "<C-w><down>", "<C-w>-")
 
--- Diagnostic
-keymap.set("n", "<C-j>", function()
-	vim.diagnostic.goto_next()
-end, opts)
-
-keymap.set("n", "<C-k>", function()
-	vim.diagnostic.goto_prev()
-end, opts)
+-- Diagnostic (use ]d / [d from LazyVim defaults)
 
 keymap.set("n", "<leader>j", vim.lsp.buf.hover)
 keymap.set("n", "<leader>q", vim.diagnostic.setloclist, opts)

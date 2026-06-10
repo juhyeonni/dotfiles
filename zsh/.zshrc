@@ -9,14 +9,28 @@ export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="nicoulaj"
 
+# fzf-tab은 zsh-autosuggestions 뒤, zsh-syntax-highlighting 앞에 와야 함
 plugins=(
   git
+  fzf
   zsh-autosuggestions
+  fzf-tab
   zsh-syntax-highlighting
   you-should-use
   zsh-bat
 )
 source $ZSH/oh-my-zsh.sh
+
+# ====================
+# fzf-tab
+# ====================
+# 그룹 간 이동(파일/디렉토리 그룹) — < > 키
+zstyle ':fzf-tab:*' switch-group '<' '>'
+# 선택 시 미리보기: 디렉토리는 eza 트리, 그 외는 기본
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+# 완성 후보에 색상 적용 (LS_COLORS 사용)
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 # ====================
 # Aliases
@@ -35,6 +49,12 @@ alias ccu="bunx ccusage@latest"   # Claude Code 토큰/비용 분석
 alias clr="clear"
 
 alias python='python3'
+
+# eza (modern ls)
+alias ls="eza --icons --group-directories-first"
+alias ll="eza -la --icons --git --group-directories-first"
+alias la="eza -a --icons --group-directories-first"
+alias lt="eza --tree --level=2 --icons"
 
 # ====================
 # Editor

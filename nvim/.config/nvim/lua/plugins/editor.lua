@@ -247,7 +247,42 @@ return {
 
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
-		ft = { "markdown" },
+		ft = { "markdown", "codecompanion" },
+		opts = {
+			-- 커서가 있는 줄만 raw 마크업을 보여줌(편집 편의), 나머지는 렌더
+			anti_conceal = { enabled = true },
+			heading = {
+				sign = false,
+				icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
+				width = "block",
+				min_width = 30,
+				border = true,
+			},
+			code = {
+				sign = false,
+				style = "full",
+				width = "block",
+				min_width = 40,
+				right_pad = 2,
+				left_pad = 1,
+				border = "thin",
+				language_icon = true,
+				language_name = true,
+			},
+			bullet = {
+				icons = { "● ", "○ ", "◆ ", "◇ " },
+			},
+			checkbox = {
+				enabled = true,
+				unchecked = { icon = "󰄱 " },
+				checked = { icon = "󰱒 " },
+			},
+			pipe_table = {
+				preset = "round",
+			},
+			-- > [!NOTE] 같은 GitHub 콜아웃 강조 (기본 세트 사용)
+			quote = { icon = "▎" },
+		},
 	},
 
 	{

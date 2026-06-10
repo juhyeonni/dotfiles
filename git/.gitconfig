@@ -8,3 +8,5 @@
 	process = git-lfs filter-process
 [credential]
 	helper = store
+[ghq]
+	root = ~/.ghq

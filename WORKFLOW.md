@@ -16,13 +16,13 @@ ghq get <owner>/<repo>     # ~/.ghq/github.com/... 로 클론 (lazy dev.path 와
 
 ## B. 코드 루프 (nvim ↔ Claude)
 
-| 행동 | 키 |
-|---|---|
-| Claude 에 선택/파일 보내 질문·리팩터 | `<leader>ca` (n/v) |
-| Claude Code 창 토글 | `<C-\><C-\>` |
-| 진단 순회 / 목록 | `]d` `[d` · `;e`(telescope) · `<leader>Q`(loclist) |
-| 코드 탐색 | `gd`(정의) · `<leader>cs`(outline) · `s`(flash 점프) |
-| inlay hint 토글 | `<leader>i` |
+| 행동                                 | 키                                                   |
+| ------------------------------------ | ---------------------------------------------------- |
+| Claude 에 선택/파일 보내 질문·리팩터 | `<leader>ca` (n/v)                                   |
+| Claude Code 창 토글                  | `<C-\><C-\>`                                         |
+| 진단 순회 / 목록                     | `]d` `[d` · `;e`(telescope) · `<leader>Q`(loclist)   |
+| 코드 탐색                            | `gd`(정의) · `<leader>cs`(outline) · `s`(flash 점프) |
+| inlay hint 토글                      | `<leader>i`                                          |
 
 루프: nvim 작성 → 막히면 `<leader>ca` 로 Claude 질의 → 진단 정리 → 다음.
 

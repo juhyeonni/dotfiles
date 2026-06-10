@@ -140,7 +140,7 @@ return {
 				desc = "Lists Function names, variables, from Treesitter",
 			},
 			{
-				"sf",
+				"<leader>fB",
 				function()
 					local telescope = require("telescope")
 

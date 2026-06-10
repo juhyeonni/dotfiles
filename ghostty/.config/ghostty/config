@@ -1,7 +1,7 @@
 # ==============================================
 #  Theme
 # ==============================================
-theme = Kanagawa Wave
+theme = Kanagawa Dragon
 
 # ==============================================
 #  Font
@@ -53,6 +53,12 @@ macos-option-as-alt = true
 scrollback-limit = 100000
 title-report = false
 
+# 창/탭 상태 복원
+window-save-state = always
+
+# BEL 수신 시 Dock 아이콘 바운스 + 사운드 + 타이틀 표시
+bell-features = system, attention, title
+
 # ==============================================
 #  Keybindings
 # ==============================================
@@ -70,3 +76,8 @@ keybind = shift+enter=text:\x1b\x0d
 # Prompt jump (shell integration)
 keybind = cmd+up=jump_to_prompt:-1
 keybind = cmd+down=jump_to_prompt:1
+
+# Quick terminal (어느 앱에서든 드롭다운, macOS 손쉬운 사용 권한 필요)
+# zshrc에서 GHOSTTY_QUICK_TERMINAL 감지 시 tmux를 띄우지 않음
+# cmd+`는 macOS '앱의 다음 창' 기본 단축키와 충돌하여 cmd+escape 사용
+keybind = global:cmd+escape=toggle_quick_terminal

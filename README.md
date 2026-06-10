@@ -19,7 +19,7 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow tmux neovim jq fzf fd ripgrep bat lazygit sesh zoxide ghq
+brew install stow tmux neovim jq fzf fd ripgrep bat eza lazygit sesh zoxide ghq
 brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 fallback)
 
 # ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
@@ -30,6 +30,26 @@ git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 stow zsh nvim tmux sesh git ghostty karabiner claude
 ```
+
+### zsh 플러그인
+
+`.zshrc`는 [Oh My Zsh](https://ohmyz.sh/)와 몇몇 custom 플러그인을 사용한다. stow로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
+
+```bash
+# Oh My Zsh 본체
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# custom 플러그인 (ZSH_CUSTOM = ~/.oh-my-zsh/custom)
+ZC=~/.oh-my-zsh/custom/plugins
+git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions      $ZC/zsh-autosuggestions
+git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting  $ZC/zsh-syntax-highlighting
+git clone --depth 1 https://github.com/MichaelAquilina/zsh-you-should-use $ZC/you-should-use
+git clone --depth 1 https://github.com/fdellwing/zsh-bat                  $ZC/zsh-bat
+git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fzf-tab
+```
+
+`git`·`fzf`는 OMZ 내장 플러그인이라 clone 불필요 (`fzf`는 위 brew 목록에 포함).
+플러그인 로드 순서는 `fzf-tab`이 `zsh-autosuggestions` 뒤, `zsh-syntax-highlighting` 앞이어야 한다 (`.zshrc` 주석 참고).
 
 개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
 

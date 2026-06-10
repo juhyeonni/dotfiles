@@ -19,7 +19,7 @@ plugins=(
   you-should-use
   zsh-bat
 )
-source $ZSH/oh-my-zsh.sh
+[ -f "$ZSH/oh-my-zsh.sh" ] && source $ZSH/oh-my-zsh.sh
 
 # ====================
 # fzf-tab
@@ -50,11 +50,13 @@ alias clr="clear"
 
 alias python='python3'
 
-# eza (modern ls)
-alias ls="eza --icons --group-directories-first"
-alias ll="eza -la --icons --git --group-directories-first"
-alias la="eza -a --icons --group-directories-first"
-alias lt="eza --tree --level=2 --icons"
+# eza (modern ls) — 설치된 경우에만 ls를 대체
+if command -v eza &> /dev/null; then
+  alias ls="eza --icons --group-directories-first"
+  alias ll="eza -la --icons --git --group-directories-first"
+  alias la="eza -a --icons --group-directories-first"
+  alias lt="eza --tree --level=2 --icons"
+fi
 
 # ====================
 # Editor
@@ -70,29 +72,31 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # ====================
 # Deno
 # ====================
-. "/Users/juhyeonlee/.deno/env"
+[ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
 
 # ====================
 # Node (fnm)
 # ====================
-FNM_PATH="/Users/juhyeonlee/Library/Application Support/fnm"
+FNM_PATH="$HOME/Library/Application Support/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
 fi
-eval "$(fnm env)"
-FNM_COREPACK_ENABLED=true
+if command -v fnm &> /dev/null; then
+  eval "$(fnm env)"
+  FNM_COREPACK_ENABLED=true
+fi
 
 # ====================
 # Docker
 # ====================
-fpath=(/Users/juhyeonlee/.docker/completions $fpath)
+[ -d "$HOME/.docker/completions" ] && fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 
 # ====================
 # Misc
 # ====================
-. "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 # ====================
 # SDKMAN (must be at the end)
@@ -109,7 +113,7 @@ if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-clou
 # ====================
 # Bun
 # ====================
-[ -s "/Users/juhyeonlee/.bun/_bun" ] && source "/Users/juhyeonlee/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 

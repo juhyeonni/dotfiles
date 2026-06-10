@@ -15,15 +15,12 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | karabiner | `.config/karabiner/karabiner.json` |
 | claude | `.claude/CLAUDE.md` (전역 지침 — 미니멀 유지) |
 
-## Setup
+## Bootstrap
 
 ```bash
 # 1. Homebrew dependencies
 brew install stow tmux neovim jq fzf fd ripgrep bat eza lazygit sesh zoxide ghq
 brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 fallback)
-
-# ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
-git config --global ghq.root '~/.ghq'
 
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
@@ -31,9 +28,14 @@ cd ~/dotfiles
 stow zsh nvim tmux sesh git ghostty karabiner claude
 ```
 
-### zsh 플러그인
+stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
+개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
 
-`.zshrc`는 [Oh My Zsh](https://ohmyz.sh/)와 몇몇 custom 플러그인을 사용한다. stow로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
+---
+
+## zsh
+
+[Oh My Zsh](https://ohmyz.sh/) + custom 플러그인을 사용한다. stow로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
 
 ```bash
 # Oh My Zsh 본체
@@ -48,16 +50,29 @@ git clone --depth 1 https://github.com/fdellwing/zsh-bat                  $ZC/zs
 git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fzf-tab
 ```
 
-`git`·`fzf`는 OMZ 내장 플러그인이라 clone 불필요 (`fzf`는 위 brew 목록에 포함).
-플러그인 로드 순서는 `fzf-tab`이 `zsh-autosuggestions` 뒤, `zsh-syntax-highlighting` 앞이어야 한다 (`.zshrc` 주석 참고).
+- `git`·`fzf`는 OMZ 내장 플러그인이라 clone 불필요 (`fzf`는 brew 목록에 포함).
+- 로드 순서: `fzf-tab`이 `zsh-autosuggestions` 뒤, `zsh-syntax-highlighting` 앞이어야 한다 (`.zshrc` 주석 참고).
+- `ls`는 `eza`로 alias (brew 목록에 포함). 없으면 기본 `ls`로 fallback.
 
-개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
+## nvim
 
-- **tmux 플러그인(TPM)**: 첫 tmux 실행 시 자동으로 clone/설치됨 (`tmux.conf`의 auto-install 블록)
-- **폰트**: Ghostty가 `MuxJK` 폰트를 사용 — 별도 설치 필요
-- **extrakto**: python3 필요 (macOS 기본 포함)
+[LazyVim](https://www.lazyvim.org/) 기반. 플러그인은 첫 실행 시 lazy.nvim이 `lazy-lock.json`대로 자동 설치한다.
 
-## tmux-claude-notify (local plugin)
+```bash
+# ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
+git config --global ghq.root '~/.ghq'
+```
+
+추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
+
+## tmux
+
+- **TPM(플러그인 매니저)**: 첫 tmux 실행 시 `tmux.conf`의 auto-install 블록이 자동으로 clone/설치.
+- **extrakto**: python3 필요 (macOS 기본 포함).
+
+주요 키: `prefix+g` 스크래치 팝업 · `prefix+C-c` Claude 팝업 · `prefix+G` lazygit · `prefix+S` sesh 세션 스위처 · `prefix+tab` extrakto
+
+### tmux-claude-notify (local plugin)
 
 Claude Code 작업 상태를 tmux 윈도우 탭에 표시한다.
 
@@ -87,7 +102,27 @@ tmux 쪽은 `tmux.conf`에서 로드되고, Claude Code 쪽은 `~/.claude/settin
 | `@claude-notify-busy-animate` | `on` | Claude Code 스피너처럼 ~150ms 간격으로 맥동(`· ✢ ✳ ✻ ✽`). busy 동안만 스피너 데몬이 돌고 작업이 모두 끝나면 자동 종료 |
 | `@claude-notify-status-right` | `on` | status-right 왼쪽에 에이전트 현황 표시: `✻N`(busy 윈도우) `⧉M`(전체 Claude 세션, `claude agents --json` 15초 캐시) |
 
-주요 tmux 키: `prefix+g` 스크래치 팝업 · `prefix+C-c` Claude 팝업 · `prefix+G` lazygit · `prefix+S` sesh 세션 스위처 · `prefix+tab` extrakto
+## sesh
+
+`sesh.toml`로 세션을 정의하고 `dev-layout.sh`가 프로젝트당 3-window 레이아웃을 구성한다. tmux에서 `prefix+S`로 세션 스위처를 띄운다. zoxide 히스토리를 활용하므로 `zoxide`(brew 목록 포함) 필요.
+
+## ghostty
+
+- **폰트**: `MuxJK` 폰트 사용 — 별도 설치 필요.
+
+## git
+
+`.gitconfig`(전역 설정)와 `.config/git/ignore`(전역 gitignore). 별도 의존성 없음.
+
+## karabiner
+
+[Karabiner-Elements](https://karabiner-elements.pqrs.org/) 키 리매핑. 앱 설치 후 stow하면 설정이 적용된다.
+
+## claude
+
+Claude Code 전역 지침 `~/.claude/CLAUDE.md` (미니멀 유지). tmux-claude-notify 훅은 [tmux 섹션](#tmux-claude-notify-local-plugin) 참고.
+
+---
 
 ## Restow (after changes)
 

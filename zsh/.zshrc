@@ -29,7 +29,9 @@ alias GT="cd ~/Workspace/Team"
 alias vz="vim ~/.zshrc"
 alias sz="source ~/.zshrc"
 alias :q="exit"
-alias cld="claude"
+alias cld="claude --dangerously-skip-permissions"
+alias ccc="claude"
+
 alias python='python3'
 
 # ====================
@@ -92,7 +94,10 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # ====================
 # tmux (auto-attach)
 # ====================
-if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
-  tmux new
+# -A: 세션이 있으면 attach, 없으면 생성 (고아 세션 누적 방지)
+# exec: tmux 종료 시 터미널도 닫힘
+# Ghostty quick terminal에서는 tmux 미사용
+if command -v tmux &> /dev/null && [ -z "$TMUX" ] && [ -z "$GHOSTTY_QUICK_TERMINAL" ]; then
+  exec tmux new -A -s main
 fi
 

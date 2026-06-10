@@ -16,6 +16,8 @@
 #       on이면 Claude Code 스피너처럼 ~150ms 간격으로 맥동(· ✢ ✳ ✻ ✽).
 #       busy 동안만 스피너 데몬(scripts/spinner.sh)이 돌며 @claude-spinner
 #       옵션 갱신 + refresh-client -S로 상태바를 강제 리프레시한다.
+#   @claude-notify-status-right on|off (default: on)
+#       status-right 왼쪽에 에이전트 현황(✻busy ⧉전체세션) 표시.
 #
 # Claude Code 쪽 등록 (settings.json hooks):
 #   UserPromptSubmit → scripts/notify.sh busy
@@ -63,6 +65,19 @@ inject() {
 
 inject window-status-format
 inject window-status-current-format
+
+# status-right 에이전트 현황 세그먼트 (테마 세그먼트 왼쪽에 prepend)
+sr_enabled=$(get_tmux_option "@claude-notify-status-right" "on")
+if [ "$sr_enabled" = "on" ]; then
+  cur_sr=$(tmux show-option -gv status-right 2>/dev/null)
+  case "$cur_sr" in
+  *tmux-claude-notify*) : ;;
+  *)
+    tmux set-option -g status-right \
+      "#[fg=${busy_fg}]#(${CURRENT_DIR}/scripts/agents_status.sh)#[default]${cur_sr}"
+    ;;
+  esac
+fi
 
 # 윈도우에 들어오면 알림 카운트 리셋 (busy는 포커스와 무관하므로 유지)
 reset_cmd='set-option -wq @claude-notify-count 0; set-option -wq @claude-notify-latest 0'

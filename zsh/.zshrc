@@ -31,6 +31,7 @@ alias sz="source ~/.zshrc"
 alias :q="exit"
 alias cld="claude --dangerously-skip-permissions"
 alias ccc="claude"
+alias ccu="bunx ccusage@latest"   # Claude Code 토큰/비용 분석
 
 alias python='python3'
 
@@ -90,6 +91,11 @@ if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-clou
 [ -s "/Users/juhyeonlee/.bun/_bun" ] && source "/Users/juhyeonlee/.bun/_bun"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# ====================
+# zoxide (smart cd) — sesh 세션 매니저가 z 히스토리를 활용
+# ====================
+command -v zoxide &> /dev/null && eval "$(zoxide init zsh)"
 
 # ====================
 # tmux (auto-attach)

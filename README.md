@@ -12,18 +12,19 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` |
+| claude | `.claude/CLAUDE.md` (전역 지침 — 미니멀 유지) |
 
 ## Setup
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow tmux neovim jq fzf fd ripgrep bat
+brew install stow tmux neovim jq fzf fd ripgrep bat lazygit sesh zoxide
 brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 fallback)
 
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux git ghostty karabiner
+stow zsh nvim tmux git ghostty karabiner claude
 ```
 
 - **tmux 플러그인(TPM)**: 첫 tmux 실행 시 자동으로 clone/설치됨 (`tmux.conf`의 auto-install 블록)
@@ -58,6 +59,9 @@ tmux 쪽은 `tmux.conf`에서 로드되고, Claude Code 쪽은 `~/.claude/settin
 | `@claude-notify-busy-icon` | `✻` | 작업중 아이콘 (animate off일 때) |
 | `@claude-notify-badge-icon` | `●` | 알림 배지 아이콘 |
 | `@claude-notify-busy-animate` | `on` | Claude Code 스피너처럼 ~150ms 간격으로 맥동(`· ✢ ✳ ✻ ✽`). busy 동안만 스피너 데몬이 돌고 작업이 모두 끝나면 자동 종료 |
+| `@claude-notify-status-right` | `on` | status-right 왼쪽에 에이전트 현황 표시: `✻N`(busy 윈도우) `⧉M`(전체 Claude 세션, `claude agents --json` 15초 캐시) |
+
+주요 tmux 키: `prefix+g` 스크래치 팝업 · `prefix+C-c` Claude 팝업 · `prefix+G` lazygit · `prefix+S` sesh 세션 스위처 · `prefix+tab` extrakto
 
 ## Restow (after changes)
 

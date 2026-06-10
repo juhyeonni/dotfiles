@@ -1,0 +1,14 @@
+# sesh — smart session manager (https://github.com/joshmedeski/sesh)
+# tmux 의 `prefix + S` 로 호출된다. 모든 프로젝트 세션에 표준 3-window
+# 레이아웃(editor / agent / git)을 적용해 "프로젝트 = 세션" 규칙을 강제한다.
+#
+# zoxide 가 자주 가는 디렉토리를 자동 인덱싱하므로, 아래 [[session]] 은
+# 고정해두고 싶은 항목만 최소로 둔다. 나머지는 dir/zoxide 로 자동 노출된다.
+
+[default_session]
+startup_command = "~/.config/sesh/dev-layout.sh"
+
+[[session]]
+name = "dotfiles 󰒓"
+path = "~/dotfiles"
+startup_command = "~/.config/sesh/dev-layout.sh"

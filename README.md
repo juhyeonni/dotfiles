@@ -9,6 +9,7 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | zsh | `.zshrc`, `.zprofile` |
 | nvim | `.config/nvim/` (LazyVim) |
 | tmux | `.config/tmux/tmux.conf`, `.config/tmux/tmux-claude-notify/` (local plugin) |
+| sesh | `.config/sesh/sesh.toml`, `dev-layout.sh` (프로젝트 = 세션 3-window) |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` |
@@ -24,8 +25,10 @@ brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 f
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux git ghostty karabiner claude
+stow zsh nvim tmux sesh git ghostty karabiner claude
 ```
+
+개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
 
 - **tmux 플러그인(TPM)**: 첫 tmux 실행 시 자동으로 clone/설치됨 (`tmux.conf`의 auto-install 블록)
 - **폰트**: Ghostty가 `MuxJK` 폰트를 사용 — 별도 설치 필요

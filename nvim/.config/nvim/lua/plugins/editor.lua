@@ -251,11 +251,17 @@ return {
 		opts = {
 			-- 커서가 있는 줄만 raw 마크업을 보여줌(편집 편의), 나머지는 렌더
 			anti_conceal = { enabled = true },
+			-- 헤딩 레벨에 따라 본문을 들여써서 문서처럼 계층이 보이게 함
+			indent = {
+				enabled = true,
+				per_level = 2, -- 레벨당 들여쓰기 칸 수
+				skip_level = 1, -- H1 아래 본문은 들여쓰지 않음(최상위는 평평하게)
+				skip_heading = false,
+			},
 			heading = {
 				sign = false,
 				icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
-				width = "block",
-				min_width = 30,
+				width = "full", -- 제목 줄 전체에 배경 바 → 섹션 구분 또렷
 				border = true,
 			},
 			code = {

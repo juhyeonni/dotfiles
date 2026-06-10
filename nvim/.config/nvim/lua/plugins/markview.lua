@@ -43,6 +43,19 @@ return {
 				-- hybrid 모드: 커서가 있는 줄만 raw 마크업, 나머지는 전부 렌더
 				hybrid_modes = { "n" },
 			},
+			markdown = {
+				headings = {
+					enable = true,
+					-- render-markdown처럼 라인 전체에 색 바를 까는 'simple' style
+					-- (아이콘 대신 sign 컬럼에 레벨 표시)
+					heading_1 = { style = "simple", hl = "MarkviewHeading1", sign = "󰉫 ", sign_hl = "MarkviewHeading1Sign" },
+					heading_2 = { style = "simple", hl = "MarkviewHeading2", sign = "󰉬 ", sign_hl = "MarkviewHeading2Sign" },
+					heading_3 = { style = "simple", hl = "MarkviewHeading3", sign = "󰉭 ", sign_hl = "MarkviewHeading3Sign" },
+					heading_4 = { style = "simple", hl = "MarkviewHeading4", sign = "󰉮 ", sign_hl = "MarkviewHeading4Sign" },
+					heading_5 = { style = "simple", hl = "MarkviewHeading5", sign = "󰉯 ", sign_hl = "MarkviewHeading5Sign" },
+					heading_6 = { style = "simple", hl = "MarkviewHeading6", sign = "󰉰 ", sign_hl = "MarkviewHeading6Sign" },
+				},
+			},
 		},
 		config = function(_, opts)
 			require("markview").setup(opts)

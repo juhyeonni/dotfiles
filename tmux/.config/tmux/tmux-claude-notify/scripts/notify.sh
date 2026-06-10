@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # tmux-claude-notify: Claude Code hook entry point
 # stdin: JSON from hook, $1: stop | notification | busy | clear
 # - busy/clear: tmux 윈도우 탭에 작업중(✻) 표시 토글만 수행
@@ -17,13 +17,41 @@ tmux_win_id() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# busy는 윈도우별 "busy pane 목록"(@claude-busy-panes)으로 관리한다.
+# - 같은 윈도우에서 Claude Code를 여러 pane으로 돌려도 하나가 끝났다고
+#   스피너가 꺼지지 않음 (@claude-busy = busy pane 수)
+# - pane 단위 추가/제거가 멱등이라 훅 이벤트가 중복/누락돼도 안전
+# - 갱신 때마다 죽은 pane을 목록에서 걸러내 stale busy를 자동 회복
 set_busy() {
-  local win_id animate
+  local win_id animate panes p live count
   win_id=$(tmux_win_id) || return 0
-  tmux set-option -wq -t "$win_id" @claude-busy "$1" 2>/dev/null
+  panes=$(tmux show-option -wqv -t "$win_id" @claude-busy-panes 2>/dev/null)
+
+  if [ "$1" = "1" ]; then
+    case " $panes " in
+    *" $TMUX_PANE "*) : ;;
+    *) panes="${panes:+$panes }$TMUX_PANE" ;;
+    esac
+  else
+    panes=$(echo " $panes " | sed "s/ $TMUX_PANE / /g")
+  fi
+
+  # 살아있는 pane만 유지
+  # (display-message는 죽은 타깃에도 exit 0으로 fallback하므로 has-session 사용)
+  live=""
+  for p in $panes; do
+    if tmux has-session -t "$p" 2>/dev/null; then
+      live="${live:+$live }$p"
+    fi
+  done
+
+  count=0
+  for p in $live; do count=$((count + 1)); done
+  tmux set-option -wq -t "$win_id" @claude-busy-panes "$live" 2>/dev/null
+  tmux set-option -wq -t "$win_id" @claude-busy "$count" 2>/dev/null
 
   # 작업 시작 시 스피너 데몬 기동 (busy 윈도우가 없어지면 스스로 종료)
-  if [ "$1" = "1" ]; then
+  if [ "$count" -gt 0 ]; then
     animate=$(tmux show-option -gqv @claude-notify-busy-animate 2>/dev/null)
     if [ "${animate:-on}" = "on" ]; then
       nohup "$SCRIPT_DIR/spinner.sh" >/dev/null 2>&1 &

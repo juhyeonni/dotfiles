@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 스피너 데몬: busy 윈도우가 하나라도 있는 동안 @claude-spinner 옵션을
 # ~150ms 간격으로 갱신하고 클라이언트 상태바를 강제 리프레시한다.
 # busy 윈도우가 없어지면 스스로 종료. notify.sh(busy)가 기동한다.
@@ -24,9 +24,9 @@ refresh_clients() {
 
 i=0
 while :; do
-  # tmux 서버가 죽었거나 busy 윈도우가 없으면 종료
+  # tmux 서버가 죽었거나 busy 윈도우가 없으면 종료 (@claude-busy는 카운트)
   busy=$(tmux list-windows -aF '#{@claude-busy}' 2>/dev/null) || break
-  echo "$busy" | grep -qx 1 || break
+  echo "$busy" | awk '$1 > 0 { found = 1 } END { exit !found }' || break
 
   tmux set-option -gq @claude-spinner "${FRAMES[$((i % ${#FRAMES[@]}))]}" 2>/dev/null
   refresh_clients

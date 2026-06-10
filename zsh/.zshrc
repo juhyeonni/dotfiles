@@ -32,6 +32,7 @@ alias :q="exit"
 alias cld="claude --dangerously-skip-permissions"
 alias ccc="claude"
 alias ccu="bunx ccusage@latest"   # Claude Code 토큰/비용 분석
+alias clr="clear"
 
 alias python='python3'
 

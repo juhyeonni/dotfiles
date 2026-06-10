@@ -106,9 +106,10 @@ return {
 		},
 	},
 
-	-- filename
+	-- filename (dropbar breadcrumbs와 파일명이 중복되어 비활성화. 되살리려면 enabled 제거)
 	{
 		"b0o/incline.nvim",
+		enabled = false,
 		dependencies = { "rebelot/kanagawa.nvim" },
 		event = "BufReadPre",
 		priority = 1200,
@@ -196,7 +197,7 @@ return {
 		config = function()
 			require("neoscroll").setup({
 				mappings = {},
-				hide_cursor = true,
+				hide_cursor = false, -- smear-cursor가 커서 모션을 일관되게 그리도록 숨기지 않음
 				stop_eof = true,
 				respect_scrolloff = false,
 				cursor_scrolls_alone = true,

@@ -33,6 +33,11 @@ vim.opt.splitkeep = "cursor"
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true
 
+-- 모든 떠있는 창(LSP hover·진단 등) 테두리를 둥글게 통일 (nvim 0.11+)
+vim.opt.winborder = "rounded"
+-- 완성 메뉴/팝업을 살짝 투명하게 (투명 테마와 어울리게, 약하게)
+vim.opt.pumblend = 10
+
 vim.opt.linebreak = true
 vim.opt.showbreak = "↪ "
 

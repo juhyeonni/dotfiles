@@ -47,3 +47,15 @@ keymap.set("i", "<C-@>", function()
 	require("blink.cmp").show()
 end, { desc = "Show completion menu" })
 
+-- Toggle 진단 표시: 한 줄 가상텍스트 ↔ 여러 줄(virtual_lines, nvim 0.11)
+keymap.set("n", "<leader>uV", function()
+	local enabled = vim.diagnostic.config().virtual_lines
+	if enabled then
+		vim.diagnostic.config({ virtual_lines = false, virtual_text = true })
+		vim.notify("Diagnostics: virtual text", vim.log.levels.INFO)
+	else
+		vim.diagnostic.config({ virtual_lines = true, virtual_text = false })
+		vim.notify("Diagnostics: virtual lines", vim.log.levels.INFO)
+	end
+end, { desc = "Toggle diagnostic virtual lines" })
+

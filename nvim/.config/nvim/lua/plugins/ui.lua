@@ -49,25 +49,23 @@ return {
 				end,
 			})
 
-			opts.presets.lsp_doc_border = true
-
-			lsp = {
-				-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+			-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+			opts.lsp = vim.tbl_deep_extend("force", opts.lsp or {}, {
 				override = {
 					["vim.lsp.util.convert_input_to_markdown_lines"] = true,
 					["vim.lsp.util.stylize_markdown"] = true,
 					["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
 				},
-			}
+			})
 
-			-- you can enable a preset for easier configuration
-			presets = {
+			-- presets for easier configuration
+			opts.presets = vim.tbl_deep_extend("force", opts.presets or {}, {
 				bottom_search = true, -- use a classic bottom cmdline for search
 				command_palette = true, -- position the cmdline and popupmenu together
 				long_message_to_split = true, -- long messages will be sent to a split
 				inc_rename = false, -- enables an input dialog for inc-rename.nvim
-				lsp_doc_border = false, -- add a border to hover docs and signature help
-			}
+				lsp_doc_border = true, -- add a border to hover docs and signature help
+			})
 		end,
 	},
 
@@ -115,12 +113,12 @@ return {
 		event = "BufReadPre",
 		priority = 1200,
 		config = function()
-			local palette = require("kanagawa.colors").setup({ theme = "wave" }).palette
+			local palette = require("kanagawa.colors").setup({ theme = "dragon" }).palette
 			require("incline").setup({
 				highlight = {
 					groups = {
-						InclineNormal = { guibg = palette.sakuraPink, guifg = palette.sumiInk0, gui = "bold" },
-						InclineNormalNC = { guifg = palette.springViolet1, guibg = palette.sumiInk4 },
+						InclineNormal = { guibg = palette.dragonPink, guifg = palette.dragonBlack0, gui = "bold" },
+						InclineNormalNC = { guifg = palette.dragonGray, guibg = palette.dragonBlack5 },
 					},
 				},
 				window = {

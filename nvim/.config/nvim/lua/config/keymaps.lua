@@ -16,8 +16,8 @@ keymap.set({ "n", "v" }, "<Leader>X", '"_D', { desc = "Delete to EOL without reg
 -- Delete a word backwards
 keymap.set("n", "dw", 'vb"_d')
 
--- Select all
-keymap.set("n", "<C-a>", "gg<S-v>G")
+-- Select all (<C-a>는 tmux prefix·dial.nvim increment와 충돌하여 <leader>A로 이동)
+keymap.set("n", "<leader>A", "gg<S-v>G", { desc = "Select all" })
 
 -- New tab
 keymap.set("n", "te", ":tabedit", { desc = "New Tab" })

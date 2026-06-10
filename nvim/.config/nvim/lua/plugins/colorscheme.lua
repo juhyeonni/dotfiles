@@ -18,7 +18,9 @@ return {
 				},
 			},
 			transparent = true,
-			theme = "wave",
+			theme = "dragon",
+			-- background이 theme보다 우선하므로 같이 지정해야 함
+			background = { dark = "dragon", light = "lotus" },
 		},
 	},
 }

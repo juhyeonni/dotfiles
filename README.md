@@ -19,8 +19,11 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow tmux neovim jq fzf fd ripgrep bat lazygit sesh zoxide
+brew install stow tmux neovim jq fzf fd ripgrep bat lazygit sesh zoxide ghq
 brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 fallback)
+
+# ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
+git config --global ghq.root '~/.ghq'
 
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles

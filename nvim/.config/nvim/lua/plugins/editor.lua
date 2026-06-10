@@ -278,7 +278,16 @@ return {
 				checked = { icon = "󰱒 " },
 			},
 			pipe_table = {
-				preset = "round",
+				enabled = true,
+				preset = "round", -- 둥근 모서리 테두리
+				-- 'padded': 각 셀을 컬럼 최대 표시폭에 맞춰 패딩 → 소스가 들쭉날쭉해도 정렬됨
+				-- (한글 등 CJK는 strdisplaywidth 기반 2칸으로 계산)
+				cell = "padded",
+				padding = 1,
+				-- 정렬 행(:---, ---:, :--:)에 방향 표시
+				alignment_indicator = "━",
+				-- 위/아래 테두리를 virtual line으로 그려, 표 주변 빈 줄에 의존하지 않음
+				border_virtual = true,
 			},
 			-- > [!NOTE] 같은 GitHub 콜아웃 강조 (기본 세트 사용)
 			quote = { icon = "▎" },

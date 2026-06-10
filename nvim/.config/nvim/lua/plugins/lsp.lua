@@ -11,6 +11,7 @@ return {
 				"shfmt",
 				"tailwindcss-language-server",
 				"css-lsp",
+				"marksman",
 			})
 		end,
 	},
@@ -53,6 +54,7 @@ return {
 					},
 				},
 				html = {},
+				marksman = {}, -- markdown LSP: 링크/헤딩 자동완성·참조 점프·끊긴 링크 진단
 				yamlls = {
 					settings = {
 						yaml = {

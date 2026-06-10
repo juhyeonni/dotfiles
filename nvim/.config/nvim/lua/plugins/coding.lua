@@ -1,4 +1,12 @@
 return {
+	-- Surround: ys(추가) / ds(삭제) / cs(변경) — 따옴표·괄호·태그 감싸기
+	{
+		"kylechui/nvim-surround",
+		version = "*",
+		event = "VeryLazy",
+		opts = {},
+	},
+
 	-- Create annotations with one keybind, and jump your cursor in the inserted annotation
 	{
 		"danymat/neogen",

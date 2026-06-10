@@ -1,10 +1,10 @@
 #!/bin/bash
-# Claude Code notification helper
+# tmux-claude-notify: Claude Code hook entry point
 # stdin: JSON from hook, $1: stop | notification | busy | clear
 # - busy/clear: tmux 윈도우 탭에 작업중(✻) 표시 토글만 수행
-# - stop/notification: macOS 알림 + tmux 윈도우 탭 배지(●N)
-# 알림 클릭 시 Ghostty 포커스 + tmux 윈도우/pane 자동 전환
-# Deps: jq, alerter(brew, 없으면 osascript fallback), tmux(optional)
+# - stop/notification: 데스크톱 알림 + tmux 윈도우 탭 배지(●N)
+#   알림 클릭 시 터미널 앱 포커스 + tmux 윈도우/pane 자동 전환 (macOS+alerter)
+# Deps: jq | macOS: alerter(brew, 없으면 osascript) | Linux: notify-send
 
 input=$(cat)
 event="$1"
@@ -15,10 +15,33 @@ tmux_win_id() {
   tmux display-message -p -t "$TMUX_PANE" '#{window_id}' 2>/dev/null
 }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 set_busy() {
-  local win_id
+  local win_id animate
   win_id=$(tmux_win_id) || return 0
   tmux set-option -wq -t "$win_id" @claude-busy "$1" 2>/dev/null
+
+  # 작업 시작 시 스피너 데몬 기동 (busy 윈도우가 없어지면 스스로 종료)
+  if [ "$1" = "1" ]; then
+    animate=$(tmux show-option -gqv @claude-notify-busy-animate 2>/dev/null)
+    if [ "${animate:-on}" = "on" ]; then
+      nohup "$SCRIPT_DIR/spinner.sh" >/dev/null 2>&1 &
+    fi
+  fi
+}
+
+# 클릭 시 포커스할 터미널 앱 자동 감지 (macOS)
+focus_terminal() {
+  if [ -n "$__CFBundleIdentifier" ]; then
+    open -b "$__CFBundleIdentifier" 2>/dev/null && return
+  fi
+  case "$TERM_PROGRAM" in
+    ghostty) open -a Ghostty 2>/dev/null ;;
+    iTerm.app) open -a iTerm 2>/dev/null ;;
+    Apple_Terminal) open -a Terminal 2>/dev/null ;;
+    WezTerm) open -a WezTerm 2>/dev/null ;;
+  esac
 }
 
 case "$event" in
@@ -41,6 +64,9 @@ case "$event" in
     title="Claude Code"
     sound="Ping"
     fallback="입력이 필요해요"
+    ;;
+  *)
+    exit 0
     ;;
 esac
 
@@ -82,10 +108,10 @@ if [ -n "$TMUX_PANE" ]; then
   fi
 fi
 
-# --- 알림 클릭 시 Ghostty 포커스 (백그라운드) ---
+# --- 데스크톱 알림 (백그라운드) ---
 (
-  # 알림 발송 (alerter는 클릭/닫기까지 블로킹)
   if command -v alerter &>/dev/null; then
+    # alerter는 클릭/닫기까지 블로킹 → 클릭 시 tmux 전환 + 터미널 포커스
     result=$(alerter \
       --title "$title" \
       --message "$msg" \
@@ -93,7 +119,6 @@ fi
       --timeout 10 \
       --json 2>/dev/null)
 
-    # 클릭 시 tmux 전환 + Ghostty 활성화
     if echo "$result" | grep -q "contentsClicked"; then
       if [ -n "$TMUX_PANE" ]; then
         target_session=$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}' 2>/dev/null)
@@ -103,11 +128,12 @@ fi
         tmux select-window -t "$TMUX_PANE" 2>/dev/null
         tmux select-pane -t "$TMUX_PANE" 2>/dev/null
       fi
-      open -a Ghostty
+      focus_terminal
     fi
-  else
-    # fallback: alerter 없으면 osascript
+  elif command -v osascript &>/dev/null; then
     msg_escaped=$(echo "$msg" | sed 's/\\/\\\\/g; s/"/\\"/g')
     osascript -e "display notification \"$msg_escaped\" with title \"$title\" sound name \"$sound\""
+  elif command -v notify-send &>/dev/null; then
+    notify-send "$title" "$msg"
   fi
 ) &

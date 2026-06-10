@@ -8,11 +8,10 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 |---------|--------|
 | zsh | `.zshrc`, `.zprofile` |
 | nvim | `.config/nvim/` (LazyVim) |
-| tmux | `.config/tmux/tmux.conf`, `.config/tmux/tmux-translate/` (local plugin) |
+| tmux | `.config/tmux/tmux.conf`, `.config/tmux/tmux-claude-notify/` (local plugin) |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` |
-| claude | `.claude/hooks/notify.sh` (Claude Code 알림 → macOS 알림 + tmux 탭 배지/작업중 표시) |
 
 ## Setup
 
@@ -24,36 +23,41 @@ brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 f
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux git ghostty karabiner claude
+stow zsh nvim tmux git ghostty karabiner
 ```
 
 - **tmux 플러그인(TPM)**: 첫 tmux 실행 시 자동으로 clone/설치됨 (`tmux.conf`의 auto-install 블록)
 - **폰트**: Ghostty가 `MuxJK` 폰트를 사용 — 별도 설치 필요
 - **extrakto**: python3 필요 (macOS 기본 포함)
 
-## Claude Code 연동
+## tmux-claude-notify (local plugin)
 
-`claude` 패키지는 훅 스크립트만 포함한다. `~/.claude/settings.json`에 아래 훅 등록 필요:
+Claude Code 작업 상태를 tmux 윈도우 탭에 표시한다.
+
+- `✻` = Claude 작업 중 / `●N` = 안 보고 있는 윈도우에 알림 N개 (윈도우 진입 시 리셋)
+- 데스크톱 알림 클릭 → 해당 tmux 세션/윈도우/pane으로 자동 전환 + 터미널 포커스
+- 테마가 그린 `window-status-format`에 조각을 주입하는 방식이라 테마를 바꿔도 동작
+
+tmux 쪽은 `tmux.conf`에서 로드되고, Claude Code 쪽은 `~/.claude/settings.json`에 훅 등록 필요:
 
 ```json
 "hooks": {
-  "Stop":             [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/notify.sh stop", "async": true }] }],
-  "Notification":     [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/notify.sh notification", "async": true }] }],
-  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/notify.sh busy", "async": true }] }],
-  "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/notify.sh clear", "async": true }] }]
+  "Stop":             [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh stop", "async": true }] }],
+  "Notification":     [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh notification", "async": true }] }],
+  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh busy", "async": true }] }],
+  "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh clear", "async": true }] }]
 }
 ```
 
-tmux 윈도우 탭 표시: `✻` = Claude 작업 중, `●N` = 안 보고 있는 윈도우에 알림 N개 (윈도우 진입 시 리셋).
+옵션 (`tmux.conf`에서 플러그인 `run` 전에 설정):
 
-## tmux-translate
-
-copy-mode에서 `v`로 선택 후 `t` → Gemini 번역 팝업 (한↔영 자동 감지).
-머신마다 API 키를 Keychain에 한 번 등록해야 한다:
-
-```bash
-security add-generic-password -a "$USER" -s "gemini-api-key" -w "YOUR_KEY"
-```
+| Option | Default | 설명 |
+|--------|---------|------|
+| `@claude-notify-busy-fg` | `yellow` | 작업중 아이콘 색 |
+| `@claude-notify-badge-fg` | `red` | 알림 배지 색 |
+| `@claude-notify-busy-icon` | `✻` | 작업중 아이콘 (animate off일 때) |
+| `@claude-notify-badge-icon` | `●` | 알림 배지 아이콘 |
+| `@claude-notify-busy-animate` | `on` | Claude Code 스피너처럼 ~150ms 간격으로 맥동(`· ✢ ✳ ✻ ✽`). busy 동안만 스피너 데몬이 돌고 작업이 모두 끝나면 자동 종료 |
 
 ## Restow (after changes)
 

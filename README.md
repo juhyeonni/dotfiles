@@ -80,15 +80,17 @@ Claude Code 작업 상태를 tmux 윈도우 탭에 표시한다.
 - 데스크톱 알림 클릭 → 해당 tmux 세션/윈도우/pane으로 자동 전환 + 터미널 포커스
 - 테마가 그린 `window-status-format`에 조각을 주입하는 방식이라 테마를 바꿔도 동작
 
-tmux 쪽은 `tmux.conf`에서 로드되고, Claude Code 쪽은 `~/.claude/settings.json`에 훅 등록 필요:
+tmux 쪽은 `tmux.conf`에서 로드된다. Claude Code 쪽은 이 저장소가 곧 플러그인 마켓플레이스이므로 `/plugin`으로 설치하면 훅(`hooks/hooks.json`)이 자동 등록된다 — `settings.json`을 손으로 건드릴 필요 없음:
 
-```json
-"hooks": {
-  "Stop":             [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh stop", "async": true }] }],
-  "Notification":     [{ "matcher": "", "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh notification", "async": true }] }],
-  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh busy", "async": true }] }],
-  "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "$HOME/.config/tmux/tmux-claude-notify/scripts/notify.sh clear", "async": true }] }]
-}
+```
+/plugin marketplace add ~/dotfiles        # 또는: juhyeonni/dotfiles (GitHub)
+/plugin install tmux-claude-notify
+```
+
+설치 후 훅이 제대로 걸렸는지 진단:
+
+```bash
+~/.config/tmux/tmux-claude-notify/scripts/doctor.sh
 ```
 
 옵션 (`tmux.conf`에서 플러그인 `run` 전에 설정):

@@ -1,7 +1,7 @@
 {
   "name": "tmux-claude-notify",
   "description": "tmux status-bar busy spinner + desktop notifications for Claude Code, driven by hooks",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Juhyeon Lee",
     "email": "l.juhyeonni@gmail.com"

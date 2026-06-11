@@ -17,7 +17,7 @@
 #       busy 동안만 스피너 데몬(scripts/spinner.sh)이 돌며 @claude-spinner
 #       옵션 갱신 + refresh-client -S로 상태바를 강제 리프레시한다.
 #   @claude-notify-status-right on|off (default: on)
-#       status-right 왼쪽에 에이전트 현황(✻busy ⧉전체세션) 표시.
+#       status-right 왼쪽에 busy 윈도우 현황(✻N) 표시.
 #
 # Claude Code 쪽 등록 (settings.json hooks):
 #   UserPromptSubmit → scripts/notify.sh busy

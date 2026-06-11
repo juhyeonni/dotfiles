@@ -79,33 +79,72 @@ else
   note_fail
 fi
 
-# --- 6. Claude Code 훅 등록 (settings.json — stow 대상 아님) ---
-head "6. Claude Code 훅 (~/.claude/settings.json)"
-found_hook=0
+# --- 6. Claude Code 훅 (플러그인 번들 권장, settings.json 은 레거시) ---
+head "6. Claude Code 훅"
+# 6a. 플러그인 번들 훅 (권장 경로)
+plugin_hook=0
+plugin_hooks_json="$SCRIPT_DIR/../hooks/hooks.json"
+if [ -f "$plugin_hooks_json" ] && grep -q '"busy"' "$plugin_hooks_json" 2>/dev/null; then
+  pass "플러그인 번들 훅 존재 (hooks/hooks.json)"
+  # enable 여부 — settings.json 의 enabledPlugins 키만 정확히 확인(jq).
+  # (수동 훅의 경로 문자열에 plugin 이름이 들어가 grep 오탐하는 걸 방지)
+  enabled=0
+  for f in "$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json"; do
+    [ -f "$f" ] || continue
+    if jq -e '(.enabledPlugins // {}) | keys[] | select(startswith("tmux-claude-notify"))' "$f" >/dev/null 2>&1; then
+      enabled=1
+    fi
+  done
+  if [ "$enabled" -eq 1 ]; then
+    pass "플러그인 enable 됨 (enabledPlugins)"
+    plugin_hook=1
+  else
+    warn "hooks.json 은 있으나 플러그인이 enable 안 됨 — claude plugin install / enable 필요"
+  fi
+fi
+# 6b. settings.json 수동 훅 (레거시 경로)
+manual_hook=0
 for f in "$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json"; do
   [ -f "$f" ] || continue
-  if grep -q 'notify.sh busy' "$f" 2>/dev/null; then
-    pass "busy 훅 등록됨 ($(basename "$f"))"
-    found_hook=1
-    for ev in stop notification clear; do
-      grep -q "notify.sh $ev" "$f" 2>/dev/null \
-        && pass "$ev 훅 등록됨" \
-        || warn "$ev 훅 없음 (스피너엔 무관하나 알림이 빠짐)"
-    done
-    break
+  if grep -q 'notify.sh.*busy\|busy.*notify.sh' "$f" 2>/dev/null; then
+    manual_hook=1
+    pass "settings.json 수동 busy 훅 등록됨 ($(basename "$f"))"
   fi
 done
-if [ "$found_hook" -eq 0 ]; then
-  fail "busy 훅 미등록 — 이게 없으면 작업중 표시 자체가 안 됨"
-  info "README 의 hooks 블록을 ~/.claude/settings.json 에 추가하세요 (stow 안 됨, 머신마다 수동)"
+# 판정
+if [ "$plugin_hook" -eq 1 ] && [ "$manual_hook" -eq 1 ]; then
+  warn "플러그인 훅 + settings.json 수동 훅 둘 다 활성 → 중복 발화. 수동 훅 제거 권장."
+elif [ "$plugin_hook" -eq 0 ] && [ "$manual_hook" -eq 0 ]; then
+  fail "busy 훅 미등록 — 작업중 표시 자체가 안 됨. 플러그인 enable 또는 settings.json 등록 필요."
   note_fail
 fi
 
-# --- 7. 라이브 확인 (Claude 작업 중일 때만 의미 있음) ---
-head "7. 라이브 상태"
+# --- 7. self-healing TTL 설정 ---
+head "7. stale 회수 TTL"
+ttl=$(tmux show-option -gqv @claude-notify-busy-ttl 2>/dev/null)
+pass "@claude-notify-busy-ttl = ${ttl:-90 (default)} 초 — 활동 없으면 이 시간 뒤 busy 자동 해제"
+info "취소(ESC)는 Stop 훅이 안 와서 박제되는데, 이 TTL 이 회수한다."
+
+# --- 8. 라이브 확인 (Claude 작업 중일 때만 의미 있음) ---
+head "8. 라이브 상태"
 busy_total=$(tmux list-windows -aF '#{@claude-busy}' 2>/dev/null | awk '{s+=$1} END{print s+0}')
 if [ "${busy_total:-0}" -gt 0 ]; then
   pass "busy 윈도우 감지됨 (@claude-busy 합계=$busy_total)"
+  # 활동 타임스탬프 신선도
+  now=$(date +%s)
+  stale_seen=0
+  while read -r w ts; do
+    [ -n "$ts" ] || { warn "윈도우 $w 에 @claude-busy-ts 없음 (구버전 notify.sh?)"; continue; }
+    age=$((now - ts))
+    if [ "$age" -gt "${ttl:-90}" ]; then
+      warn "윈도우 $w busy-ts 가 ${age}s 전 (TTL ${ttl:-90}s 초과) → 곧 회수돼야 정상"
+      stale_seen=1
+    else
+      info "윈도우 $w 마지막 활동 ${age}s 전"
+    fi
+  done < <(tmux list-windows -aF '#{window_id} #{@claude-busy} #{@claude-busy-ts}' 2>/dev/null | awk '$2>0{print $1, $3}')
+  [ "$stale_seen" -eq 0 ] && pass "활동 타임스탬프 신선 (하트비트 정상)"
+
   info "@claude-spinner 값이 바뀌는지 2초간 관찰..."
   seen=""
   changed=0
@@ -125,7 +164,7 @@ if [ "${busy_total:-0}" -gt 0 ]; then
   fi
 else
   info "지금 busy 윈도우 없음 — Claude 에게 작업을 시킨 상태(처리 중)로 만든 뒤 다시 실행하면"
-  info "스피너 갱신까지 확인됩니다."
+  info "스피너 갱신·TTL 신선도까지 확인됩니다."
 fi
 
 # --- 요약 ---

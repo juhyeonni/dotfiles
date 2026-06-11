@@ -1,0 +1,14 @@
+{
+  "name": "juhyeonni-dotfiles",
+  "owner": {
+    "name": "Juhyeon Lee",
+    "email": "l.juhyeonni@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "tmux-claude-notify",
+      "description": "tmux status-bar busy spinner + desktop notifications for Claude Code",
+      "source": "./tmux/.config/tmux/tmux-claude-notify"
+    }
+  ]
+}

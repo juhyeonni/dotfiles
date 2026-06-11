@@ -50,13 +50,25 @@ set_busy() {
   tmux set-option -wq -t "$win_id" @claude-busy-panes "$live" 2>/dev/null
   tmux set-option -wq -t "$win_id" @claude-busy "$count" 2>/dev/null
 
-  # 작업 시작 시 스피너 데몬 기동 (busy 윈도우가 없어지면 스스로 종료)
+  # 작업 시작 시: 활동 타임스탬프 기록 + 데몬 기동.
+  # 데몬은 animate 와 무관하게 띄운다 — 프레임 애니메이션뿐 아니라
+  # stale busy(@claude-busy-ts 가 TTL 초과) 회수도 담당하기 때문이다.
+  # (singleton 이라 중복 기동은 데몬 쪽에서 무시된다)
   if [ "$count" -gt 0 ]; then
-    animate=$(tmux show-option -gqv @claude-notify-busy-animate 2>/dev/null)
-    if [ "${animate:-on}" = "on" ]; then
-      nohup "$SCRIPT_DIR/spinner.sh" >/dev/null 2>&1 &
-    fi
+    tmux set-option -wq -t "$win_id" @claude-busy-ts "$(date +%s)" 2>/dev/null
+    nohup "$SCRIPT_DIR/spinner.sh" >/dev/null 2>&1 &
   fi
+}
+
+# tick: 활동 하트비트. 이미 busy 인 윈도우의 타임스탬프만 갱신한다(경량).
+# PreToolUse/PostToolUse 마다 불려서 긴 멀티툴 작업이 TTL 로 만료되지 않게 한다.
+# busy 가 아니면 아무것도 안 함(턴 밖 호출로 인한 허위 busy 방지).
+tick_busy() {
+  local win_id count
+  win_id=$(tmux_win_id) || return 0
+  count=$(tmux show-option -wqv -t "$win_id" @claude-busy 2>/dev/null)
+  [ "${count:-0}" -gt 0 ] 2>/dev/null || return 0
+  tmux set-option -wq -t "$win_id" @claude-busy-ts "$(date +%s)" 2>/dev/null
 }
 
 # 클릭 시 포커스할 터미널 앱 자동 감지 (macOS)
@@ -77,17 +89,25 @@ case "$event" in
     set_busy 1
     exit 0
     ;;
+  tick)
+    tick_busy
+    exit 0
+    ;;
   clear)
     set_busy 0
     exit 0
     ;;
   stop)
+    # 턴 정상 종료 → 작업중 표시 해제
+    set_busy 0
     msg=$(echo "$input" | jq -r '.last_assistant_message // empty' 2>/dev/null | head -c 300)
     title="Claude Code"
     sound="Glass"
     fallback="작업이 완료됐어요"
     ;;
   notification)
+    # 입력 대기/권한 프롬프트. busy 는 유지한다 — 승인 후 Claude 가 계속
+    # 일하므로 여기서 끄면 스피너가 잘못 꺼진다. stale 는 TTL 이 회수.
     msg=$(echo "$input" | jq -r '.message // empty' 2>/dev/null | head -c 300)
     title="Claude Code"
     sound="Ping"
@@ -97,9 +117,6 @@ case "$event" in
     exit 0
     ;;
 esac
-
-# 턴 종료/입력 대기 → 작업중 표시 해제
-set_busy 0
 
 # Strip markdown to plain text (preserve newlines) — BSD sed compatible
 if [ -n "$msg" ]; then

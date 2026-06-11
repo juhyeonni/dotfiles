@@ -9,6 +9,9 @@ export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="nicoulaj"
 
+# 붙여넣기 시 URL/경로 quoting 매직 비활성화 — 구형(인텔) 머신에서 붙여넣기 렉 방지
+DISABLE_MAGIC_FUNCTIONS=true
+
 # fzf-tab은 zsh-autosuggestions 뒤, zsh-syntax-highlighting 앞에 와야 함
 plugins=(
   git
@@ -19,6 +22,10 @@ plugins=(
   you-should-use
   zsh-bat
 )
+
+# Docker completion을 fpath에 추가 (omz의 compinit이 한 번에 픽업하도록 source 이전에 설정)
+[ -d "$HOME/.docker/completions" ] && fpath=($HOME/.docker/completions $fpath)
+
 [ -f "$ZSH/oh-my-zsh.sh" ] && source $ZSH/oh-my-zsh.sh
 
 # ====================
@@ -85,13 +92,6 @@ if command -v fnm &> /dev/null; then
   eval "$(fnm env)"
   FNM_COREPACK_ENABLED=true
 fi
-
-# ====================
-# Docker
-# ====================
-[ -d "$HOME/.docker/completions" ] && fpath=($HOME/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
 
 # ====================
 # Misc

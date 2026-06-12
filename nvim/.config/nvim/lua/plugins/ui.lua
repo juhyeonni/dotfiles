@@ -194,6 +194,7 @@ return {
 	},
 	{
 		"karb94/neoscroll.nvim",
+		enabled = false, -- [intel] 스크롤 애니메이션 렉 → 비활성
 		config = function()
 			require("neoscroll").setup({
 				mappings = {},
@@ -224,6 +225,7 @@ return {
 	},
 	{
 		"sphamba/smear-cursor.nvim",
+		enabled = false, -- [intel] 커서 잔상 애니메이션 렉 → 비활성
 		opts = {
 			distance_stop_animating = 0.8,
 			stiffness = 0.5,

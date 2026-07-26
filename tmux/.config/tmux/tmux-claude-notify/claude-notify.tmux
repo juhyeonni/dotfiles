@@ -80,6 +80,11 @@ if [ "$sr_enabled" = "on" ]; then
 fi
 
 # 윈도우에 들어오면 알림 카운트 리셋 (busy는 포커스와 무관하므로 유지)
+# 발화하는 훅이 tmux 버전마다 달라서 동일 reset 을 여러 훅에 건다.
+# (after-select-window/pane-focus-in 은 최신 tmux 에서 동작, window-pane-changed/
+#  session-window-changed 는 구버전용. 안 먹는 훅은 무해한 no-op)
 reset_cmd='set-option -wq @claude-notify-count 0; set-option -wq @claude-notify-latest 0'
+tmux set-hook -g after-select-window "$reset_cmd"
+tmux set-hook -g pane-focus-in "$reset_cmd"
 tmux set-hook -g window-pane-changed "$reset_cmd"
 tmux set-hook -g session-window-changed "$reset_cmd"

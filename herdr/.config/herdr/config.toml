@@ -17,8 +17,12 @@ settings = "prefix+comma"                        # prefix+s 를 내준 자리
 # 탭 전환은 tmux 시절 `bind -r C-h/C-l select-window` 을 그대로 옮긴 것.
 # pane 전환(prefix+hjkl)은 herdr 기본값이 이미 tmux 와 같아 손대지 않았다 —
 # 같은 h/l 을 탭에도 주면 pane 과 충돌하므로 탭은 ctrl 을 얹어 구분한다.
-previous_tab = ["prefix+p", "prefix+ctrl+h"]
-next_tab = ["prefix+n", "prefix+ctrl+l"]
+#
+# herdr 에는 tmux 의 `bind -r`(repeat) 이 없다. prefix 계열은 한 번 누를 때마다
+# prefix 를 다시 쳐야 하므로, 연타용으로 prefix 없는 ctrl+alt+h/l 을 함께 둔다.
+# 주의: 직접 바인딩은 herdr 가 먼저 삼켜서 pane 안의 앱에 전달되지 않는다.
+previous_tab = ["prefix+p", "prefix+ctrl+h", "ctrl+alt+h"]
+next_tab = ["prefix+n", "prefix+ctrl+l", "ctrl+alt+l"]
 
 switch_workspace = "prefix+shift+1..9"
 previous_workspace = "prefix+shift+k"

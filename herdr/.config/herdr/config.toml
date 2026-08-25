@@ -19,7 +19,9 @@ key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]
 type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
 width = "60%"
-height = "50%"
+# 47행 pane 기준 약 17행. 가장 긴 [all] 모드(목록 11 + 헤더 2 + 카운터 + 프롬프트)가
+# 딱 들어간다. 더 키우면 fzf 가 아래쪽 정렬이라 위쪽이 빈다.
+height = "40%"
 
 # lazygit/scratch 가 alt 조합인 이유: prefix+g 는 goto, prefix+shift+g 는 new_worktree.
 [[keys.command]]

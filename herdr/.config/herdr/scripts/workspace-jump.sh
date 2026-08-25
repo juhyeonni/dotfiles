@@ -16,6 +16,10 @@ done
 
 GHQ_ROOT="$(ghq root)"
 TOP=8
+# zoxide 는 마지막 접근 시각을 노출하지 않고, 점수는 rank(누적 횟수) x 최근성 배수라
+# 한 세션 안에서는 배수가 상쇄돼 사실상 빈도순이 된다. "최근에 연 순서"는 직접 기록한다.
+MRU_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-mru"
+MRU_MAX=50
 
 # 팝업은 명령이 끝나면 즉시 닫힌다 — 에러를 읽을 시간을 준다.
 fail() {
@@ -43,6 +47,43 @@ git_repos() {
   zoxide query -l | while IFS= read -r d; do [[ -d $d/.git ]] && printf '%s\n' "$d"; done
 }
 
+mru_add() {
+  local tmp
+  mkdir -p "${MRU_FILE%/*}"
+  tmp="$(mktemp)" || return 0
+  # pipefail 주의: 그룹이 0 으로 끝나야 뒤의 mv 가 돈다. [[ -f ]] 가 거짓이거나
+  # grep 이 0 줄을 반환(-v 로 전부 걸러짐)해도 실패로 잡히면 안 된다.
+  {
+    printf '%s\n' "$1"
+    [[ -f $MRU_FILE ]] && { grep -vxF "$1" "$MRU_FILE" || true; }
+    :
+  } | head -n "$MRU_MAX" >"$tmp" && mv "$tmp" "$MRU_FILE"
+}
+
+# 지금 있는 workspace 는 기본 목록에서 뺀다 — 이미 거기 있으므로 갈 일이 없고,
+# 빼면 1순위가 "직전에 있던 곳"이 되어 alt-tab 처럼 동작한다.
+current_ws_root() {
+  herdr workspace list |
+    jq -r '.result.workspaces[]? | select(.focused == true) | .tokens.ws_root // empty' | head -n1
+}
+
+# MRU 를 앞에, 모자라면 zoxide 순으로 채운다(새 머신에서 MRU 가 비어도 목록이 빈다).
+list_recent() {
+  local cur; cur="$(current_ws_root)"
+  { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; git_repos; } |
+    awk 'NF && !seen[$0]++' |
+    while IFS= read -r d; do
+      [[ -d $d/.git && $d != "$cur" ]] && printf '%s\n' "$d"
+    done | head -n "$TOP"
+}
+
+# ghq 목록을 zoxide rank 순으로. zoxide 에 없는 리포는 뒤로 민다.
+list_ghq() {
+  awk 'NR == FNR { idx[$0] = FNR; next }
+       { printf "%d\t%s\n", ($0 in idx ? idx[$0] : 999999999), $0 }' \
+    <(zoxide query -l) <(ghq list -p) | sort -n -k1,1 | cut -f2
+}
+
 open_workspace() {
   local sel="$1" target existing id
   [[ -d $sel ]] || { fail "경로가 없습니다: $sel"; return 1; }
@@ -52,6 +93,7 @@ open_workspace() {
   # zoxide 훅은 cd 만 잡는다. workspace 를 여는 건 cd 가 아니므로 직접 올려야
   # frecency 가 "최근 연 workspace" 랭킹이 된다.
   zoxide add "$target"
+  mru_add "$target"
 
   existing="$(herdr workspace list |
     jq -r --arg p "$target" '.result.workspaces[]? | select(.tokens.ws_root == $p) | .workspace_id' |
@@ -90,9 +132,9 @@ while true; do
   # **입력한 문자열**에 작용하는 키 — 이 구분이 안 보여서 헤더를 나눴다.
   hdr2='typed name → ctrl-g clone · ctrl-n create'
   case "$mode" in
-  ghq) src="$(ghq list -p | render)"; hdr1='[ghq] enter open · ctrl-t all' ;;
+  ghq) src="$(list_ghq | render)"; hdr1='[ghq] enter open · ctrl-t all' ;;
   all) src="$(git_repos | render)"; hdr1='[all] enter open · ctrl-r ghq' ;;
-  *) src="$(git_repos | head -n "$TOP" | render)"
+  *) src="$(list_recent | render)"
      hdr1='[recent] enter open · ctrl-r ghq · ctrl-t all' ;;
   esac
   hdr="$hdr1"$'\n'"$hdr2"

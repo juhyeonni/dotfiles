@@ -6,13 +6,14 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 | Package | Config |
 |---------|--------|
-| zsh | `.zshrc`, `.zprofile` |
+| zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
 | nvim | `.config/nvim/` (LazyVim) |
-| tmux | `.config/tmux/tmux.conf`, `.config/tmux/tmux-claude-notify/` (local plugin) |
+| tmux | `.config/tmux/tmux.conf` |
 | sesh | `.config/sesh/sesh.toml`, `dev-layout.sh` (프로젝트 = 세션 3-window) |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
-| karabiner | `.config/karabiner/karabiner.json` |
+| karabiner | `.config/karabiner/karabiner.json` (키 리매핑) |
+| hammerspoon | `.hammerspoon/init.lua` (입력 소스 전환) |
 | claude | `.claude/CLAUDE.md` (전역 지침 — 미니멀 유지) |
 
 ## Bootstrap
@@ -20,16 +21,19 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 ```bash
 # 1. Homebrew dependencies
 brew install stow tmux neovim jq fzf fd ripgrep bat eza lazygit sesh zoxide ghq
-brew install alerter   # 클릭 가능한 macOS 알림 (없으면 osascript로 fallback)
 
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux sesh git ghostty karabiner claude
+stow zsh nvim tmux sesh git ghostty karabiner hammerspoon claude
 ```
 
 stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
 개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
+
+**언어 런타임(Rust·Node·Deno·Bun·JVM·gcloud)은 여기에 포함되지 않는다.** 부트스트랩은
+셸·에디터·터미널까지만 세우고, 런타임은 프로젝트가 필요로 할 때 따로 설치한다
+([zsh 섹션](#zsh) 참고).
 
 ---
 
@@ -54,6 +58,23 @@ git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fz
 - 로드 순서: `fzf-tab`이 `zsh-autosuggestions` 뒤, `zsh-syntax-highlighting` 앞이어야 한다 (`.zshrc` 주석 참고).
 - `ls`는 `eza`로 alias (brew 목록에 포함). 없으면 기본 `ls`로 fallback.
 
+### 계층 구조
+
+`.zshrc`(코어)는 셸 자체만 다루고, 있을 수도 없을 수도 있는 것은 바깥으로 뺐다.
+
+| 계층 | 위치 | 로드 조건 |
+|------|------|-----------|
+| 코어 | `.zshrc` | 항상 |
+| 선택 (언어 런타임 등) | `.config/zsh/rc.d/*.zsh` | 파일이 있으면 번호 순으로. 각 파일이 자체 가드 |
+| 머신 전용 | `~/.zshrc.local` | 있으면. 레포에 들어가지 않는다 |
+
+`rc.d`의 각 조각은 대상이 설치돼 있을 때만 동작한다 — 예를 들어 `~/.sdkman`이 없으면
+`90-sdkman.zsh`는 통째로 no-op이다. **새 머신에서 런타임을 하나도 안 깔면 rc.d 전체가
+아무 일도 하지 않는다.** 런타임을 쓰게 되면 그때 설치하면 되고, `.zshrc`는 건드릴 필요 없다.
+
+시작 시간 참고(측정값): 전체 약 190ms 중 oh-my-zsh 130ms, SDKMAN+gcloud 40ms,
+나머지 설정 전부 합쳐 10ms 남짓.
+
 ## nvim
 
 [LazyVim](https://www.lazyvim.org/) 기반. 플러그인은 첫 실행 시 lazy.nvim이 `lazy-lock.json`대로 자동 설치한다.
@@ -72,38 +93,6 @@ git config --global ghq.root '~/.ghq'
 
 주요 키: `prefix+g` 스크래치 팝업 · `prefix+C-c` Claude 팝업 · `prefix+G` lazygit · `prefix+S` sesh 세션 스위처 · `prefix+tab` extrakto
 
-### tmux-claude-notify (local plugin)
-
-Claude Code 작업 상태를 tmux 윈도우 탭에 표시한다.
-
-- `✻` = Claude 작업 중 / `●N` = 안 보고 있는 윈도우에 알림 N개 (윈도우 진입 시 리셋)
-- 데스크톱 알림 클릭 → 해당 tmux 세션/윈도우/pane으로 자동 전환 + 터미널 포커스
-- 테마가 그린 `window-status-format`에 조각을 주입하는 방식이라 테마를 바꿔도 동작
-
-tmux 쪽은 `tmux.conf`에서 로드된다. Claude Code 쪽은 이 저장소가 곧 플러그인 마켓플레이스이므로 `/plugin`으로 설치하면 훅(`hooks/hooks.json`)이 자동 등록된다 — `settings.json`을 손으로 건드릴 필요 없음:
-
-```
-/plugin marketplace add ~/dotfiles        # 또는: juhyeonni/dotfiles (GitHub)
-/plugin install tmux-claude-notify
-```
-
-설치 후 훅이 제대로 걸렸는지 진단:
-
-```bash
-~/.config/tmux/tmux-claude-notify/scripts/doctor.sh
-```
-
-옵션 (`tmux.conf`에서 플러그인 `run` 전에 설정):
-
-| Option | Default | 설명 |
-|--------|---------|------|
-| `@claude-notify-busy-fg` | `yellow` | 작업중 아이콘 색 |
-| `@claude-notify-badge-fg` | `red` | 알림 배지 색 |
-| `@claude-notify-busy-icon` | `✻` | 작업중 아이콘 (animate off일 때) |
-| `@claude-notify-badge-icon` | `●` | 알림 배지 아이콘 |
-| `@claude-notify-busy-animate` | `on` | Claude Code 스피너처럼 ~150ms 간격으로 맥동(`· ✢ ✳ ✻ ✽`). busy 동안만 스피너 데몬이 돌고 작업이 모두 끝나면 자동 종료 |
-| `@claude-notify-status-right` | `on` | status-right 왼쪽에 `✻N`(Claude 작업 중인 윈도우 수) 표시 |
-
 ## sesh
 
 `sesh.toml`로 세션을 정의하고 `dev-layout.sh`가 프로젝트당 3-window 레이아웃을 구성한다. tmux에서 `prefix+S`로 세션 스위처를 띄운다. zoxide 히스토리를 활용하므로 `zoxide`(brew 목록 포함) 필요.
@@ -116,13 +105,39 @@ tmux 쪽은 `tmux.conf`에서 로드된다. Claude Code 쪽은 이 저장소가 
 
 `.gitconfig`(전역 설정)와 `.config/git/ignore`(전역 gitignore). 별도 의존성 없음.
 
-## karabiner
+## 입력 소스 전환 (karabiner + hammerspoon)
 
-[Karabiner-Elements](https://karabiner-elements.pqrs.org/) 키 리매핑. 앱 설치 후 stow하면 설정이 적용된다.
+한/영/일 전환은 **두 프로그램이 나눠 맡는다.** Karabiner가 물리 키를 신호로 바꾸고,
+Hammerspoon이 그 신호를 입력 소스 전환으로 해석한다.
+
+| 키 | Karabiner 매핑 | Hammerspoon 동작 |
+|----|----------------|------------------|
+| `caps lock` | → `f19` | 한국어 ↔ 영어 |
+| `right option` | → `f17` | 한국어 ↔ 일본어 |
+| `shift+cmd+space` | — | 한국어 ↔ 일본어 |
+
+`caps_lock → f19` 매핑은 프로파일 최상위와 **`devices[]` 안 개별 키보드 항목 양쪽에**
+들어 있다. 하나만 지우면 다른 쪽이 남아서 동작한다 — 바꿀 때 둘 다 확인할 것.
+
+### Karabiner 단독 구성을 시도했다가 되돌린 기록
+
+Hammerspoon을 없애고 Karabiner의 `select_input_source`로 직접 전환하는 구성을
+시험했으나 정상 동작하지 않아 되돌렸다. 이 API는 macOS의 deprecated Carbon API를
+쓰고, 한국어·일본어처럼 `input_mode_id`를 가진 CJK 입력 소스에서 불안정하다는
+보고가 공식 문서와 이슈 트래커에 있다. 같은 시도를 반복하지 말 것.
+
+- [to.select_input_source](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/select-input-source/) — CJK 실패 가능성 명시
+- [Issue #1602](https://github.com/pqrs-org/Karabiner-Elements/issues/1602) — CJKV 전환 이슈
+
+### 알아둘 것
+
+- Karabiner는 입력 모니터링, Hammerspoon은 손쉬운 사용 권한이 필요하다(둘 다 수동).
+- `devices[]`에 `ignore: true`로 제외된 키보드가 있다(vendor 1133 / product 49312).
+  그 키보드에서는 어떤 Karabiner 규칙도 적용되지 않는다.
 
 ## claude
 
-Claude Code 전역 지침 `~/.claude/CLAUDE.md` (미니멀 유지). tmux-claude-notify 훅은 [tmux 섹션](#tmux-claude-notify-local-plugin) 참고.
+Claude Code 전역 지침 `~/.claude/CLAUDE.md` (미니멀 유지).
 
 ---
 

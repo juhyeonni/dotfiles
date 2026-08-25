@@ -1,18 +1,10 @@
+-- key mapping for vim
+-- Convert input soruce as English and sends 'escape' if inputSource is not English.
+-- Sends 'escape' if inputSource is English.
 -- key bindding reference --> https://www.hammerspoon.org/docs/hs.hotkey.html
 local inputEnglish = "com.apple.keylayout.ABC"
 local inputKorean = "com.apple.inputmethod.Korean.2SetKorean"
 local inputJapanese = "com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese"
-
--- key mapping for multi language
-
--- local inputEnglish = "com.apple.keylayout.ABC"
--- local inputKorean = "com.apple.inputmethod.Korean.2SetKorean"
--- local inputJapanese = "com.apple.inputmethod.Kotoeri.Japanese"
-
--- function eng_kor_toggle_with_capslock()
---   local inputSource = hs.keycodes.currentSourceID()
---   if (inputSource == inputEnglish) then
---     hs.keycodes.currentSourceID(inputKorean)
 
 function eng_kor_toggle_with_capslock()
 	local inputSource = hs.keycodes.currentSourceID()
@@ -40,6 +32,9 @@ end
 
 --shortcut
 hs.hotkey.bind({}, "f19", eng_kor_toggle_with_capslock)
+
+-- right option key
+hs.hotkey.bind({}, "f17", jpn_kor_toggle_with_right_option)
 
 -- cmd + shift + space key
 hs.hotkey.bind({ "cmd", "shift" }, "space", jpn_kor_toggle_with_right_option)

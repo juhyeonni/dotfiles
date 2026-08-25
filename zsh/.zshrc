@@ -66,61 +66,49 @@ if command -v eza &> /dev/null; then
 fi
 
 # ====================
+# ghq → zoxide 브리지
+# ====================
+# ghq 로 받은 모든 리포를 zoxide 에 등록한다. sesh 가 zoxide 를 소스로 쓰므로,
+# 방문 이력이 없는 갓 clone 한 리포도 즉시 `prefix + S` (sesh) picker 에 노출된다.
+# → 리포 진입점을 tmux `prefix + S` 하나로 통일.
+if command -v ghq &> /dev/null && command -v zoxide &> /dev/null; then
+  ghq-zoxide-sync() {
+    ghq list -p | while IFS= read -r repo; do zoxide add "$repo"; done
+  }
+  # ghq get 직후 자동 동기화 (clone 하자마자 sesh 가 인식)
+  ghq() {
+    command ghq "$@"; local ret=$?
+    [[ "$1" == "get" ]] && ghq-zoxide-sync
+    return $ret
+  }
+fi
+
+# ====================
 # Editor
 # ====================
 export EDITOR="nvim"
 
 # ====================
-# Rust (rustup + cargo)
-# ====================
-export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
-
-# ====================
-# Deno
-# ====================
-[ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
-
-# ====================
-# Node (fnm)
-# ====================
-FNM_PATH="$HOME/Library/Application Support/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-fi
-if command -v fnm &> /dev/null; then
-  eval "$(fnm env)"
-  FNM_COREPACK_ENABLED=true
-fi
-
-# ====================
-# Misc
-# ====================
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-
-# ====================
-# SDKMAN (must be at the end)
-# ====================
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-# ====================
-# Google Cloud SDK
-# ====================
-if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/path.zsh.inc"; fi
-if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
-
-# ====================
-# Bun
-# ====================
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# ====================
 # zoxide (smart cd) — sesh 세션 매니저가 z 히스토리를 활용
 # ====================
 command -v zoxide &> /dev/null && eval "$(zoxide init zsh)"
+
+# ====================
+# rc.d — 선택 계층 로드
+# ====================
+# 존재하는 조각만 번호 순으로 읽는다. 개발 런타임(rust/node/deno/bun/java/gcloud)
+# 처럼 머신마다 있을 수도 없을 수도 있는 것은 전부 여기로 뺐다.
+# 셸 코어(이 파일)는 런타임의 존재를 모른다 — 부트스트랩과 개발환경 구성이
+# 서로 다른 단계이기 때문이다.
+# (N) = 매치가 없어도 에러 내지 않는 zsh glob qualifier
+for _rc in ~/.config/zsh/rc.d/*.zsh(N); do source "$_rc"; done
+unset _rc
+
+# ====================
+# 이 머신 전용 설정
+# ====================
+# 레포에 들어가지 않는다(.gitignore). 임시 PATH, 회사 도구, 실험용 alias 등.
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
 # ====================
 # tmux (auto-attach)

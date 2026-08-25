@@ -64,9 +64,10 @@ bell-features = system, attention, title
 # ==============================================
 keybind = cmd+shift+r=reload_config
 
-# tmux integration
+# herdr integration (\x01 = ctrl+a = herdr prefix)
+# cmd+w 만 대문자 X — herdr 는 prefix+x 가 close_pane, prefix+shift+x 가 close_tab 이다.
 keybind = cmd+t=text:\x01c
-keybind = cmd+w=text:\x01x
+keybind = cmd+w=text:\x01X
 keybind = ctrl+tab=text:\x01n
 keybind = ctrl+shift+tab=text:\x01p
 

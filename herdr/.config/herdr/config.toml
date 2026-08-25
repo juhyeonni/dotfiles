@@ -1,0 +1,99 @@
+# herdr — 터미널 멀티플렉서 (tmux 대체)
+#
+# 계층: workspace(= 프로젝트) > tab > pane. tmux 의 session > window > pane 에
+# 대응하지만 herdr 는 여기에 "에이전트 상태"(blocked/working/done/idle)를 얹고
+# 사이드바에 띄운다 — tmux 로 옮겨오게 만든 유일한 이유다.
+#
+# 기본값 전체는 `herdr --default-config` 로 확인. 이 파일은 기본값과 다른 것만 적는다.
+# 문법 검사: herdr config check
+
+[theme]
+name = "kanagawa"
+
+# ─────────────────────────────────────────────────────────────
+#  KEYS
+# ─────────────────────────────────────────────────────────────
+[keys]
+# tmux 시절 prefix 를 유지한다. Ghostty 가 cmd+t / ctrl+tab / ctrl+shift+tab 을
+# \x01(= ctrl+a) 시퀀스로 보내도록 설정돼 있고, 그 세 개가 herdr 기본 액션
+# (new_tab / next_tab / previous_tab) 과 그대로 맞아떨어진다.
+prefix = "ctrl+a"
+
+# tmux 는 `prefix + s` 가 상하 분할이었다. herdr 기본값 prefix+minus 를 남겨둔 채
+# 옛 키를 하나 더 얹고, 자리를 뺏기는 settings 는 prefix+comma 로 옮긴다.
+split_horizontal = ["prefix+minus", "prefix+s"]
+settings = "prefix+comma"
+
+# ─────────────────────────────────────────────────────────────
+#  POPUP COMMANDS
+# ─────────────────────────────────────────────────────────────
+# tmux 의 display-popup 바인딩 4개를 옮겼다. prefix+g(goto)와
+# prefix+shift+g(new_worktree)는 herdr 기본 액션이 이미 쓰고 있으므로
+# lazygit / scratch 는 alt 조합으로 비켰다.
+
+# 프로젝트 진입점 — sesh 를 대체한다 (zoxide + fzf → workspace)
+[[keys.command]]
+key = "prefix+shift+s"
+type = "popup"
+command = "~/.config/herdr/scripts/workspace-jump.sh"
+width = "60%"
+height = "70%"
+
+[[keys.command]]
+key = "prefix+alt+g"
+type = "popup"
+command = "lazygit"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
+key = "prefix+ctrl+c"
+type = "popup"
+command = "claude"
+width = "85%"
+height = "85%"
+
+[[keys.command]]
+key = "prefix+alt+t"
+type = "popup"
+command = "$SHELL"
+width = "80%"
+height = "75%"
+
+# ─────────────────────────────────────────────────────────────
+#  NOTIFICATIONS
+# ─────────────────────────────────────────────────────────────
+# "terminal" = OSC 로 바깥 터미널에 위임한다. 외부 의존성이 없고(반면 "system" 은
+# terminal-notifier 를 쓴다) SSH/--remote 에서도 알림이 올바른 머신에 뜬다.
+# Ghostty 쪽 bell-features = system, attention, title 이 이 경로를 받는다.
+#
+# 주의: 알림을 클릭해도 터미널 앱이 활성화될 뿐 해당 pane 으로 가지 않는다.
+# pane 점프는 prefix+o (open_notification_target).
+[ui.toast]
+delivery = "terminal"
+
+[ui.sound]
+enabled = true
+
+# ─────────────────────────────────────────────────────────────
+#  SESSION
+# ─────────────────────────────────────────────────────────────
+# 서버 재시작 후 에이전트를 원래 대화 세션으로 복구한다.
+# `herdr integration install claude` 가 돼 있어야 동작한다.
+[session]
+resume_agents_on_restore = true
+
+# ─────────────────────────────────────────────────────────────
+#  EXPERIMENTAL (한글 입력)
+# ─────────────────────────────────────────────────────────────
+[experimental]
+# 한글 자판 상태에서도 prefix(ctrl+a)가 먹도록 prefix 모드 동안만 ASCII 자판으로
+# 전환했다가 되돌린다. 부작용 없음.
+switch_ascii_input_source_in_prefix = true
+
+# 아래 둘은 "Claude Code 에 한글을 칠 때 조합 중 밑줄/후보창이 커서를 따라오지
+# 않는" 증상이 실제로 있을 때만 켠다. 켜면 커서를 숨기고 대체 커서를 그리지 않는
+# 앱(vim normal 모드 등)에서 커서가 하나 더 보인다 — 그래서 cjk_ime_agents 로
+# Claude pane 에만 한정하는 것이 중요하다. 반드시 둘을 함께 켤 것.
+# reveal_hidden_cursor_for_cjk_ime = true
+# cjk_ime_agents = ["claude"]

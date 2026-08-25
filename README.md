@@ -8,7 +8,8 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 |---------|--------|
 | zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
 | nvim | `.config/nvim/` (LazyVim) |
-| tmux | `.config/tmux/tmux.conf` |
+| herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
+| tmux | `.config/tmux/tmux.conf` (herdr 로 이주 중 — 제거 예정) |
 | sesh | `.config/sesh/sesh.toml`, `dev-layout.sh` (프로젝트 = 세션 3-window) |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
@@ -20,13 +21,17 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow tmux neovim jq fzf fd ripgrep bat eza lazygit sesh zoxide ghq
+brew install stow herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
 
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim tmux sesh git ghostty karabiner hammerspoon claude
+stow zsh nvim git ghostty karabiner hammerspoon claude
+stow --no-folding herdr   # herdr 는 herdr.sock 을 같은 디렉토리에 쓴다 — 폴딩하면 레포로 들어온다
 ```
+
+`tmux`/`sesh` 는 herdr 이주 중 롤백용으로 레포에만 남겨두었고 더 이상 stow 하지 않는다.
+되돌리려면 `brew install tmux sesh && stow tmux sesh` 후 `.zshrc` 의 auto-attach 를 tmux 로 바꾼다.
 
 stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
 개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
@@ -85,6 +90,31 @@ git config --global ghq.root '~/.ghq'
 ```
 
 추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
+
+## herdr
+
+[herdr](https://herdr.dev) — 에이전트 상태를 인지하는 터미널 멀티플렉서. tmux 를 대체한다.
+계층은 **workspace(= 프로젝트) > tab > pane**.
+
+- prefix 는 `ctrl+a` (tmux 시절 유지). Ghostty 의 `cmd+t`/`ctrl+tab`/`ctrl+shift+tab` 이
+  `\x01` 시퀀스로 이 prefix 를 때린다.
+- `prefix+S` — 프로젝트 진입점. zoxide 후보를 fzf 로 고르면 workspace 를 열거나 만든다.
+  중복 판정은 생성 시 새겨둔 metadata 토큰 `ws_root`(원본 절대경로)로 한다.
+- `prefix+alt+g` lazygit · `prefix+ctrl+c` Claude · `prefix+alt+t` 스크래치 셸 (전부 팝업)
+- `prefix+o` — 알림이 뜬 pane 으로 점프. **알림을 클릭하면 터미널 앱이 활성화될 뿐
+  해당 pane 으로 가지 않는다.**
+- 에이전트 상태(blocked/working/done/idle)를 사이드바에 띄우려면 훅 설치가 필요하다:
+
+```bash
+herdr integration install claude
+herdr config check                  # config.toml 문법 검사
+```
+
+brew 로 깔면 brew 가 버전을 관리하고, herdr.dev 의 standalone 설치본을 쓰면
+`herdr update` 가 스스로 갱신한다 (이 머신은 후자 — `~/.local/bin/herdr`).
+
+세션 복원은 내장이다(tmux-resurrect/continuum 불필요). 서버가 재시작돼도 레이아웃을
+복구하고, `[session] resume_agents_on_restore` 로 에이전트 대화까지 되살린다.
 
 ## tmux
 

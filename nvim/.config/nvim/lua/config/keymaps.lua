@@ -11,7 +11,7 @@ keymap.set("v", "<Leader>p", '"-1p')
 
 -- dw는 표준 동작(커서→다음 단어 삭제) 유지 — 이전의 vb"_d 오버라이드 제거
 
--- Select all (<C-a>는 tmux prefix·dial.nvim increment와 충돌하여 <leader>A로 이동)
+-- Select all (<C-a>는 herdr prefix·dial.nvim increment와 충돌하여 <leader>A로 이동)
 keymap.set("n", "<leader>A", "gg<S-v>G", { desc = "Select all" })
 
 -- New tab (<Tab>/<S-Tab>은 bufferline이 담당하므로 여기선 te만)

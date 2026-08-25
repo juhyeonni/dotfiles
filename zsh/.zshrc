@@ -68,14 +68,14 @@ fi
 # ====================
 # ghq → zoxide 브리지
 # ====================
-# ghq 로 받은 모든 리포를 zoxide 에 등록한다. sesh 가 zoxide 를 소스로 쓰므로,
-# 방문 이력이 없는 갓 clone 한 리포도 즉시 `prefix + S` (sesh) picker 에 노출된다.
-# → 리포 진입점을 tmux `prefix + S` 하나로 통일.
+# ghq 로 받은 모든 리포를 zoxide 에 등록한다. herdr 의 workspace-jump 스크립트가
+# zoxide 를 후보 소스로 쓰므로, 방문 이력이 없는 갓 clone 한 리포도 즉시
+# `prefix + S` picker 에 노출된다. → 리포 진입점을 이 키 하나로 통일.
 if command -v ghq &> /dev/null && command -v zoxide &> /dev/null; then
   ghq-zoxide-sync() {
     ghq list -p | while IFS= read -r repo; do zoxide add "$repo"; done
   }
-  # ghq get 직후 자동 동기화 (clone 하자마자 sesh 가 인식)
+  # ghq get 직후 자동 동기화 (clone 하자마자 picker 가 인식)
   ghq() {
     command ghq "$@"; local ret=$?
     [[ "$1" == "get" ]] && ghq-zoxide-sync
@@ -89,7 +89,7 @@ fi
 export EDITOR="nvim"
 
 # ====================
-# zoxide (smart cd) — sesh 세션 매니저가 z 히스토리를 활용
+# zoxide (smart cd) — herdr workspace-jump 가 z 히스토리를 활용
 # ====================
 command -v zoxide &> /dev/null && eval "$(zoxide init zsh)"
 
@@ -111,12 +111,14 @@ unset _rc
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
 # ====================
-# tmux (auto-attach)
+# herdr (auto-attach)
 # ====================
-# -A: 세션이 있으면 attach, 없으면 생성 (고아 세션 누적 방지)
-# exec: tmux 종료 시 터미널도 닫힘
-# Ghostty quick terminal에서는 tmux 미사용
-if command -v tmux &> /dev/null && [ -z "$TMUX" ] && [ -z "$GHOSTTY_QUICK_TERMINAL" ]; then
-  exec tmux new -A -s main
+# --session main: 세션이 있으면 attach, 없으면 생성
+# exec: herdr 종료 시 터미널도 닫힘
+# HERDR_ENV: herdr 가 관리하는 pane 안에서는 재진입하지 않는다
+#            (herdr 는 기본적으로 중첩 실행을 막는다 — experimental.allow_nested)
+# Ghostty quick terminal에서는 herdr 미사용
+if command -v herdr &> /dev/null && [ -z "$HERDR_ENV" ] && [ -z "$GHOSTTY_QUICK_TERMINAL" ]; then
+  exec herdr --session main
 fi
 

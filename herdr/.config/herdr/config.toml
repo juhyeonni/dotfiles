@@ -28,6 +28,13 @@ switch_workspace = "prefix+shift+1..9"
 previous_workspace = "prefix+shift+k"
 next_workspace = "prefix+shift+j"
 
+# agent 전환 — 역시 herdr 기본값이 비어 있다. navigate 모드(prefix+g)는 사이드바에
+# 커서를 그리지만 이동 키가 workspace 와 pane 에만 정의돼 있어 agents 행에는 닿지 않는다.
+# 수식어로 대상을 가른다: shift = space, alt = agent.
+focus_agent = "prefix+alt+1..9"
+previous_agent = "prefix+alt+k"
+next_agent = "prefix+alt+j"
+
 # description 은 prefix+? 도움말에서 "custom command" 대신 표시되는 이름이다.
 # 팝업 테두리의 "popup" 라벨은 herdr 가 고정한 것이라 설정으로 못 바꾼다.
 # 프로젝트 진입점 (sesh 대체).

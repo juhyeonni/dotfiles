@@ -14,6 +14,12 @@ settings = "prefix+comma"                        # prefix+s 를 내준 자리
 # navigate 모드(prefix+g) 말고는 이동 수단이 없었다.
 # 숫자 체계를 맞춘다: prefix+1..9 = tab, prefix+shift+1..9 = space.
 # 사이드바가 세로 목록이라 순회는 j/k 가 방향과 일치한다.
+# 탭 전환은 tmux 시절 `bind -r C-h/C-l select-window` 을 그대로 옮긴 것.
+# pane 전환(prefix+hjkl)은 herdr 기본값이 이미 tmux 와 같아 손대지 않았다 —
+# 같은 h/l 을 탭에도 주면 pane 과 충돌하므로 탭은 ctrl 을 얹어 구분한다.
+previous_tab = ["prefix+p", "prefix+ctrl+h"]
+next_tab = ["prefix+n", "prefix+ctrl+l"]
+
 switch_workspace = "prefix+shift+1..9"
 previous_workspace = "prefix+shift+k"
 next_workspace = "prefix+shift+j"

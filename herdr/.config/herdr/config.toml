@@ -1,59 +1,27 @@
-# herdr — 터미널 멀티플렉서 (tmux 대체)
-#
-# 계층: workspace(= 프로젝트) > tab > pane. tmux 의 session > window > pane 에
-# 대응하지만 herdr 는 여기에 "에이전트 상태"(blocked/working/done/idle)를 얹고
-# 사이드바에 띄운다 — tmux 로 옮겨오게 만든 유일한 이유다.
-#
-# 기본값 전체는 `herdr --default-config` 로 확인. 이 파일은 기본값과 다른 것만 적는다.
-# 문법 검사: herdr config check
+# herdr — 터미널 멀티플렉서. 계층: workspace > tab > pane.
+# 기본값은 `herdr --default-config`, 검사는 `herdr config check`.
+# 고친 뒤 `herdr server reload-config` — 파일 변경을 감시하지 않는다.
 
 [theme]
 name = "kanagawa"
 
-# ─────────────────────────────────────────────────────────────
-#  KEYS
-# ─────────────────────────────────────────────────────────────
 [keys]
-# tmux 시절 prefix 를 유지한다. Ghostty 가 cmd+t / ctrl+tab / ctrl+shift+tab 을
-# \x01(= ctrl+a) 시퀀스로 보내도록 설정돼 있고, 그 세 개가 herdr 기본 액션
-# (new_tab / next_tab / previous_tab) 과 그대로 맞아떨어진다.
 prefix = "ctrl+a"
+split_horizontal = ["prefix+minus", "prefix+s"]  # tmux 의 prefix+s 를 되살림
+settings = "prefix+comma"                        # prefix+s 를 내준 자리
 
-# tmux 는 `prefix + s` 가 상하 분할이었다. herdr 기본값 prefix+minus 를 남겨둔 채
-# 옛 키를 하나 더 얹고, 자리를 뺏기는 settings 는 prefix+comma 로 옮긴다.
-split_horizontal = ["prefix+minus", "prefix+s"]
-settings = "prefix+comma"
-
-# ─────────────────────────────────────────────────────────────
-#  POPUP COMMANDS
-# ─────────────────────────────────────────────────────────────
-# tmux 의 display-popup 바인딩 4개를 옮겼다. prefix+g(goto)와
-# prefix+shift+g(new_worktree)는 herdr 기본 액션이 이미 쓰고 있으므로
-# lazygit / scratch 는 alt 조합으로 비켰다.
-
-# 프로젝트 진입점 — sesh 를 대체한다 (zoxide + fzf → workspace)
-#
-# prefix+shift+s 가 어느 상황에서든 되는 정본이고, 뒤의 둘은 prefix 를 건너뛰는
-# 직접 바인딩이다. herdr 가 이 키들을 먼저 삼키므로 pane 안의 앱(nvim, Claude Code)은
-# 영영 받지 못한다.
-#
-# 직접 바인딩의 조건 3가지:
-#   - Ghostty 의 macos-option-as-alt = true. 없으면 option+s 가 alt 가 아니라 "ß".
-#   - Karabiner 가 right option 을 f17(한/일 전환)로 뺏어가므로 **왼쪽 option** 만 먹는다.
-#   - **한글 입력 상태에서는 alt+s 가 안 먹는다.** switch_ascii_input_source_in_prefix
-#     는 이름 그대로 prefix 모드에서만 ASCII 로 전환한다. 직접 바인딩은 prefix 를
-#     거치지 않으므로 IME 가 option+s 를 자모 조합으로 먹어버린다.
-#     → 한글 상태에서는 prefix+shift+s 를 쓰거나, IME 를 타지 않는 ctrl+alt+s 를 쓴다.
-#
-# config 를 고친 뒤에는 `herdr server reload-config` 를 돌려야 반영된다
-# (파일 변경을 감시하지 않는다).
+# 프로젝트 진입점 (sesh 대체).
+# alt+s 는 한글 입력 중에는 안 먹는다 — switch_ascii_input_source_in_prefix 가
+# prefix 모드에서만 ASCII 로 바꾸기 때문. 한글에서는 prefix+shift+s 나 ctrl+alt+s.
+# option 은 왼쪽만 — 오른쪽은 Karabiner 가 f17(한/일)로 가져간다.
 [[keys.command]]
 key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]
 type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
 width = "60%"
-height = "70%"
+height = "50%"
 
+# lazygit/scratch 가 alt 조합인 이유: prefix+g 는 goto, prefix+shift+g 는 new_worktree.
 [[keys.command]]
 key = "prefix+alt+g"
 type = "popup"
@@ -75,40 +43,27 @@ command = "$SHELL"
 width = "80%"
 height = "75%"
 
-# ─────────────────────────────────────────────────────────────
-#  NOTIFICATIONS
-# ─────────────────────────────────────────────────────────────
-# "terminal" = OSC 로 바깥 터미널에 위임한다. 외부 의존성이 없고(반면 "system" 은
-# terminal-notifier 를 쓴다) SSH/--remote 에서도 알림이 올바른 머신에 뜬다.
-# Ghostty 쪽 bell-features = system, attention, title 이 이 경로를 받는다.
-#
-# 주의: 알림을 클릭해도 터미널 앱이 활성화될 뿐 해당 pane 으로 가지 않는다.
-# pane 점프는 prefix+o (open_notification_target).
+[ui]
+# herdr 의 유일한 확인 프롬프트. close_tab / close_pane 에는 없다.
+confirm_close = true
+
 [ui.toast]
+# 바깥 터미널(Ghostty)에 위임. system 은 terminal-notifier 를 끌어들이고
+# --remote 에서 엉뚱한 머신에 뜬다. 클릭해도 pane 까지는 안 간다 — prefix+o.
 delivery = "terminal"
 
 [ui.sound]
 enabled = true
 
-# ─────────────────────────────────────────────────────────────
-#  SESSION
-# ─────────────────────────────────────────────────────────────
-# 서버 재시작 후 에이전트를 원래 대화 세션으로 복구한다.
-# `herdr integration install claude` 가 돼 있어야 동작한다.
 [session]
+# `herdr integration install claude` 가 돼 있어야 동작한다.
 resume_agents_on_restore = true
 
-# ─────────────────────────────────────────────────────────────
-#  EXPERIMENTAL (한글 입력)
-# ─────────────────────────────────────────────────────────────
 [experimental]
-# 한글 자판 상태에서도 prefix(ctrl+a)가 먹도록 prefix 모드 동안만 ASCII 자판으로
-# 전환했다가 되돌린다. 부작용 없음.
+# 한글 자판에서도 prefix 가 먹게 한다. 부작용 없음.
 switch_ascii_input_source_in_prefix = true
 
-# 아래 둘은 "Claude Code 에 한글을 칠 때 조합 중 밑줄/후보창이 커서를 따라오지
-# 않는" 증상이 실제로 있을 때만 켠다. 켜면 커서를 숨기고 대체 커서를 그리지 않는
-# 앱(vim normal 모드 등)에서 커서가 하나 더 보인다 — 그래서 cjk_ime_agents 로
-# Claude pane 에만 한정하는 것이 중요하다. 반드시 둘을 함께 켤 것.
+# Claude Code 에 한글 칠 때 후보창이 커서를 안 따라오면 둘을 함께 켠다.
+# 대가로 vim normal 모드 등에서 커서가 하나 더 보이므로 agents 로 범위를 좁힌다.
 # reveal_hidden_cursor_for_cjk_ime = true
 # cjk_ime_agents = ["claude"]

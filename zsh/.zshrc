@@ -68,9 +68,8 @@ fi
 # ====================
 # ghq → zoxide 브리지
 # ====================
-# ghq 로 받은 모든 리포를 zoxide 에 등록한다. herdr 의 workspace-jump 스크립트가
-# zoxide 를 후보 소스로 쓰므로, 방문 이력이 없는 갓 clone 한 리포도 즉시
-# `prefix + S` picker 에 노출된다. → 리포 진입점을 이 키 하나로 통일.
+# ghq 로 받은 리포를 zoxide 에 등록한다. workspace-jump 가 zoxide 를 후보로 쓰므로
+# 갓 clone 한 리포도 방문 이력 없이 바로 picker 에 뜬다.
 if command -v ghq &> /dev/null && command -v zoxide &> /dev/null; then
   ghq-zoxide-sync() {
     ghq list -p | while IFS= read -r repo; do zoxide add "$repo"; done
@@ -113,11 +112,8 @@ unset _rc
 # ====================
 # herdr (auto-attach)
 # ====================
-# --session main: 세션이 있으면 attach, 없으면 생성
-# exec: herdr 종료 시 터미널도 닫힘
-# HERDR_ENV: herdr 가 관리하는 pane 안에서는 재진입하지 않는다
-#            (herdr 는 기본적으로 중첩 실행을 막는다 — experimental.allow_nested)
-# Ghostty quick terminal에서는 herdr 미사용
+# --session main: 있으면 attach, 없으면 생성. exec: herdr 종료 시 터미널도 닫힘.
+# HERDR_ENV 는 herdr 가 관리하는 pane 안이라는 뜻 — 중첩 실행 방지.
 if command -v herdr &> /dev/null && [ -z "$HERDR_ENV" ] && [ -z "$GHOSTTY_QUICK_TERMINAL" ]; then
   exec herdr --session main
 fi

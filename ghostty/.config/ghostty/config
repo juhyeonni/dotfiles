@@ -65,9 +65,10 @@ bell-features = system, attention, title
 keybind = cmd+shift+r=reload_config
 
 # herdr integration (\x01 = ctrl+a = herdr prefix)
-# cmd+w 만 대문자 X — herdr 는 prefix+x 가 close_pane, prefix+shift+x 가 close_tab 이다.
+# cmd+w 가 close_workspace 인 이유: close_tab 은 확인 프롬프트가 없어서
+# 탭이 하나뿐인 space 를 그냥 날린다.
 keybind = cmd+t=text:\x01c
-keybind = cmd+w=text:\x01X
+keybind = cmd+w=text:\x01D
 keybind = ctrl+tab=text:\x01n
 keybind = ctrl+shift+tab=text:\x01p
 

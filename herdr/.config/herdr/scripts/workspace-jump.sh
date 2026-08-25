@@ -86,12 +86,16 @@ ghq_run_and_open() {
 
 mode=default
 while true; do
+  # 2행 고정. 1행은 지금 보고 있는 목록과 그것을 바꾸는 키, 2행은 목록이 아니라
+  # **입력한 문자열**에 작용하는 키 — 이 구분이 안 보여서 헤더를 나눴다.
+  hdr2='typed name → ctrl-g clone · ctrl-n create'
   case "$mode" in
-  ghq) src="$(ghq list -p | render)"; hdr='[ghq] enter 열기 · ctrl-t 전체' ;;
-  all) src="$(git_repos | render)"; hdr='[전체] enter 열기 · ctrl-r ghq' ;;
+  ghq) src="$(ghq list -p | render)"; hdr1='[ghq] enter open · ctrl-t all' ;;
+  all) src="$(git_repos | render)"; hdr1='[all] enter open · ctrl-r ghq' ;;
   *) src="$(git_repos | head -n "$TOP" | render)"
-     hdr='enter 열기 · ctrl-g clone · ctrl-n 새 리포 · ctrl-r ghq · ctrl-t 전체' ;;
+     hdr1='[recent] enter open · ctrl-r ghq · ctrl-t all' ;;
   esac
+  hdr="$hdr1"$'\n'"$hdr2"
 
   out="$(printf '%s\n' "$src" | fzf \
     --print-query --expect=ctrl-g,ctrl-n,ctrl-r,ctrl-t \

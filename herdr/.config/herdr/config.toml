@@ -32,8 +32,23 @@ settings = "prefix+comma"
 # lazygit / scratch 는 alt 조합으로 비켰다.
 
 # 프로젝트 진입점 — sesh 를 대체한다 (zoxide + fzf → workspace)
+#
+# prefix+shift+s 가 어느 상황에서든 되는 정본이고, 뒤의 둘은 prefix 를 건너뛰는
+# 직접 바인딩이다. herdr 가 이 키들을 먼저 삼키므로 pane 안의 앱(nvim, Claude Code)은
+# 영영 받지 못한다.
+#
+# 직접 바인딩의 조건 3가지:
+#   - Ghostty 의 macos-option-as-alt = true. 없으면 option+s 가 alt 가 아니라 "ß".
+#   - Karabiner 가 right option 을 f17(한/일 전환)로 뺏어가므로 **왼쪽 option** 만 먹는다.
+#   - **한글 입력 상태에서는 alt+s 가 안 먹는다.** switch_ascii_input_source_in_prefix
+#     는 이름 그대로 prefix 모드에서만 ASCII 로 전환한다. 직접 바인딩은 prefix 를
+#     거치지 않으므로 IME 가 option+s 를 자모 조합으로 먹어버린다.
+#     → 한글 상태에서는 prefix+shift+s 를 쓰거나, IME 를 타지 않는 ctrl+alt+s 를 쓴다.
+#
+# config 를 고친 뒤에는 `herdr server reload-config` 를 돌려야 반영된다
+# (파일 변경을 감시하지 않는다).
 [[keys.command]]
-key = "prefix+shift+s"
+key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]
 type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
 width = "60%"

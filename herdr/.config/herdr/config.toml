@@ -10,6 +10,14 @@ prefix = "ctrl+a"
 split_horizontal = ["prefix+minus", "prefix+s"]  # tmux 의 prefix+s 를 되살림
 settings = "prefix+comma"                        # prefix+s 를 내준 자리
 
+# space(workspace) 전환 — herdr 기본값은 셋 다 비어 있어서 picker(prefix+w)와
+# navigate 모드(prefix+g) 말고는 이동 수단이 없었다.
+# 숫자 체계를 맞춘다: prefix+1..9 = tab, prefix+shift+1..9 = space.
+# 사이드바가 세로 목록이라 순회는 j/k 가 방향과 일치한다.
+switch_workspace = "prefix+shift+1..9"
+previous_workspace = "prefix+shift+k"
+next_workspace = "prefix+shift+j"
+
 # description 은 prefix+? 도움말에서 "custom command" 대신 표시되는 이름이다.
 # 팝업 테두리의 "popup" 라벨은 herdr 가 고정한 것이라 설정으로 못 바꾼다.
 # 프로젝트 진입점 (sesh 대체).

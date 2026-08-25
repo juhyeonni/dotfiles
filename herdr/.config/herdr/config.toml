@@ -10,6 +10,8 @@ prefix = "ctrl+a"
 split_horizontal = ["prefix+minus", "prefix+s"]  # tmux 의 prefix+s 를 되살림
 settings = "prefix+comma"                        # prefix+s 를 내준 자리
 
+# description 은 prefix+? 도움말에서 "custom command" 대신 표시되는 이름이다.
+# 팝업 테두리의 "popup" 라벨은 herdr 가 고정한 것이라 설정으로 못 바꾼다.
 # 프로젝트 진입점 (sesh 대체).
 # alt+s 는 한글 입력 중에는 안 먹는다 — switch_ascii_input_source_in_prefix 가
 # prefix 모드에서만 ASCII 로 바꾸기 때문. 한글에서는 prefix+shift+s 나 ctrl+alt+s.
@@ -18,6 +20,7 @@ settings = "prefix+comma"                        # prefix+s 를 내준 자리
 key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]
 type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
+description = "workspace"
 width = "60%"
 # 47행 pane 기준 약 17행. 가장 긴 [all] 모드(목록 11 + 헤더 2 + 카운터 + 프롬프트)가
 # 딱 들어간다. 더 키우면 fzf 가 아래쪽 정렬이라 위쪽이 빈다.
@@ -28,6 +31,7 @@ height = "40%"
 key = "prefix+alt+g"
 type = "popup"
 command = "lazygit"
+description = "lazygit"
 width = "90%"
 height = "90%"
 
@@ -35,6 +39,7 @@ height = "90%"
 key = "prefix+ctrl+c"
 type = "popup"
 command = "claude"
+description = "claude"
 width = "85%"
 height = "85%"
 
@@ -42,6 +47,7 @@ height = "85%"
 key = "prefix+alt+t"
 type = "popup"
 command = "$SHELL"
+description = "shell"
 width = "80%"
 height = "75%"
 

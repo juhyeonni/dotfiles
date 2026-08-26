@@ -119,6 +119,33 @@ brew 로 깔면 brew 가 버전을 관리하고, herdr.dev 의 standalone 설치
 세션 복원은 내장이다(tmux-resurrect/continuum 불필요). 서버가 재시작돼도 레이아웃을
 복구하고, `[session] resume_agents_on_restore` 로 에이전트 대화까지 되살린다.
 
+### pi 연동
+
+[pi](https://pi.dev) 도 herdr 가 인지하는 에이전트다. 훅이 아니라 **pi 익스텐션**으로 붙는다.
+
+```bash
+herdr integration install pi        # ~/.pi/agent/extensions/herdr-agent-state.ts
+herdr --skill > ~/.pi/agent/skills/herdr/SKILL.md   # pi 가 herdr 를 조작할 수 있게
+```
+
+두 파일 다 생성물이라 레포에 넣지 않는다 — herdr 를 업데이트하면 다시 뽑아야 한다.
+`herdr integration status` 로 버전을 확인한다.
+
+스킬을 심으면 pane 안의 pi 가 herdr CLI 로 다른 pane 을 만들고 에이전트를 띄울 수 있다.
+스킬의 description 이 "사용자가 herdr 를 명시적으로 언급할 때만" 으로 제한돼 있어
+평소에는 끼어들지 않는다.
+
+**확인된 것** (`herdr agent start smoke --kind pi` 로 실측):
+
+- `agent start --kind pi` 로 pane 에 pi 를 띄우면 herdr 가 `pi` 로 인식하고
+  **세션 JSONL 경로까지** 추적한다
+- `agent prompt --wait` 가 완료 시점에 반환한다 (타임아웃 아님)
+- `agent read --source visible` 로 화면 내용을 그대로 읽는다
+
+**안 되는 것**: `blocked` 상태는 pi 에서 뜨지 않는다. pi 는 설계상 권한 팝업이
+없어서 herdr 가 잡을 승인 UI 자체가 없다. 질문을 시켜도 텍스트로 출력하고 `idle`
+로 간다. 승인 대기를 감지하려면 질문 UI 를 제공하는 익스텐션이 따로 필요하다.
+
 ## tmux
 
 - **TPM(플러그인 매니저)**: 첫 tmux 실행 시 `tmux.conf`의 auto-install 블록이 자동으로 clone/설치.
@@ -167,6 +194,28 @@ Hammerspoon을 없애고 Karabiner의 `select_input_source`로 직접 전환하�
 - Karabiner는 입력 모니터링, Hammerspoon은 손쉬운 사용 권한이 필요하다(둘 다 수동).
 - `devices[]`에 `ignore: true`로 제외된 키보드가 있다(vendor 1133 / product 49312).
   그 키보드에서는 어떤 Karabiner 규칙도 적용되지 않는다.
+
+## pi
+
+[pi](https://pi.dev) — 최소주의 코딩 에이전트. 설정은 `~/.pi/agent/settings.json`.
+**stow 하지 않는다** — 같은 디렉토리에 자격증명(`auth.json`)과 세션이 있다.
+
+```json
+{ "defaultTools": ["read","bash","edit","write","grep","find","ls"] }
+```
+
+`defaultTools` 는 꼭 넣는다. pi 의 기본 활성 툴은 `read bash edit write` **네 개뿐**이고
+`grep`/`find`/`ls` 는 빌트인이지만 꺼져 있다. 안 켜면 모델이 `bash` 로 우회하며
+토큰을 더 쓴다. (`pi -p "list your tools"` 로 확인 가능)
+
+주의할 것 둘:
+
+- **`defaultProvider`/`defaultModel` 이 미인증이면 조용히 폴백한다.** 설정에 적어둔
+  모델로 도는지 믿지 말고 `pi auth check --provider <이름>` 으로 확인한다.
+- pi 패키지는 `AGENTS.md` 를 실을 수 없다. 패키지가 담는 건 `extensions/` `skills/`
+  `prompts/` `themes/` 넷뿐이라, 전역 규칙은 `~/.pi/agent/AGENTS.md` 에 직접 둔다.
+
+herdr 와 붙이는 방법은 [herdr 절의 pi 연동](#pi-연동) 참고.
 
 ## claude
 

@@ -64,6 +64,9 @@ bell-features = system, attention, title
 # ==============================================
 keybind = cmd+shift+r=reload_config
 
+# 한글 입력 상태에서도 prefix 가 먹도록: 레이아웃/IME 무시하고 물리 키 위치(W3C KeyA)로 매칭
+keybind = ctrl+key_a=text:\x01
+
 # herdr integration (\x01 = ctrl+a = herdr prefix)
 # cmd+w 가 close_workspace 인 이유: close_tab 은 확인 프롬프트가 없어서
 # 탭이 하나뿐인 space 를 그냥 날린다.

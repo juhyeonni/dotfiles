@@ -100,8 +100,9 @@ git config --global ghq.root '~/.ghq'
   `\x01` 시퀀스로 이 prefix 를 때린다.
 - `prefix+S` — 프로젝트 진입점. zoxide 후보를 fzf 로 고르면 workspace 를 열거나 만든다.
   중복 판정은 생성 시 새겨둔 metadata 토큰 `ws_root`(원본 절대경로)로 한다.
-  `alt+s`/`ctrl+alt+s` 로도 열리지만 **한글 입력 상태에서는 직접 바인딩이 안 먹는다** —
-  `switch_ascii_input_source_in_prefix` 는 prefix 모드에서만 ASCII 로 전환하기 때문이다.
+  `alt+s`/`ctrl+alt+s` 로도 열린다. `switch_ascii_input_source_in_prefix` 는 prefix
+  모드 '안에서만' ASCII 로 전환하므로 prefix 를 안 거치는 `alt+s` 는 못 덮는다 —
+  한글 대응은 Hammerspoon 의 `forceEnglishKeys` 가 맡는다.
 - `prefix+alt+g` lazygit · `prefix+ctrl+c` Claude · `prefix+alt+t` 스크래치 셸 (전부 팝업)
 - `prefix+o` — 알림이 뜬 pane 으로 점프. **알림을 클릭하면 터미널 앱이 활성화될 뿐
   해당 pane 으로 가지 않는다.**

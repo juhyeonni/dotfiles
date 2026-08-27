@@ -38,8 +38,9 @@ next_agent = "prefix+alt+j"
 # description 은 prefix+? 도움말에서 "custom command" 대신 표시되는 이름이다.
 # 팝업 테두리의 "popup" 라벨은 herdr 가 고정한 것이라 설정으로 못 바꾼다.
 # 프로젝트 진입점 (sesh 대체).
-# alt+s 는 한글 입력 중에는 안 먹는다 — switch_ascii_input_source_in_prefix 가
-# prefix 모드에서만 ASCII 로 바꾸기 때문. 한글에서는 prefix+shift+s 나 ctrl+alt+s.
+# alt+s 는 switch_ascii_input_source_in_prefix 가 못 덮는다 — 그건 prefix 모드
+# '안에서만' ASCII 로 바꾸는데 alt+s 는 prefix 를 안 거치기 때문. 그래서 한글 대응은
+# hammerspoon init.lua 의 forceEnglishKeys 가 맡는다 (누르면 영문으로 전환).
 # option 은 왼쪽만 — 오른쪽은 Karabiner 가 f17(한/일)로 가져간다.
 [[keys.command]]
 key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]

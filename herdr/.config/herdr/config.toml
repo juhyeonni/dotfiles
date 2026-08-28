@@ -80,12 +80,21 @@ height = "75%"
 # tmux 의 break-pane. herdr 는 [keys] 에 pane 이동 액션이 없고 CLI 에만 있다.
 # split(prefix+v)의 역동작이라 shift 를 얹었다 — prefix+shift+s 는 workspace 팝업이 먼저 가져갔다.
 # pane id 는 서버가 focused pane 을 알고 있어서 env 없이도 `pane current` 로 잡힌다.
-# 기존 탭으로 합치려면(join-pane) --new-tab 대신 --tab <id>. 탭을 골라야 해서 안 걸었다.
+# v 계열로 묶는다: v = split, shift+v = 떼어내기, alt+v = 다시 붙이기.
 [[keys.command]]
 key = "prefix+shift+v"
 type = "shell"
 command = "herdr pane move $(herdr pane current | jq -r .result.pane.pane_id) --new-tab --focus"
 description = "break pane"
+
+# join-pane. 탭을 골라야 해서 popup + fzf. 목록이 짧아 팝업도 작게.
+[[keys.command]]
+key = "prefix+alt+v"
+type = "popup"
+command = "~/.config/herdr/scripts/pane-join.sh"
+description = "join pane"
+width = "40%"
+height = "40%"
 
 [ui]
 # herdr 의 유일한 확인 프롬프트. close_tab / close_pane 에는 없다.

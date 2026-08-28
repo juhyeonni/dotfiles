@@ -26,8 +26,8 @@ brew install stow herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
 # 2. Clone & stow
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-stow zsh nvim git ghostty karabiner hammerspoon claude
-stow --no-folding herdr   # herdr 는 herdr.sock 을 같은 디렉토리에 쓴다 — 폴딩하면 레포로 들어온다
+stow zsh nvim git ghostty karabiner hammerspoon
+stow --no-folding herdr claude   # 둘 다 생성물이 설정과 같은 디렉토리에 산다 — 폴딩하면 레포로 들어온다
 ```
 
 `tmux`/`sesh` 는 herdr 이주 중 롤백용으로 레포에만 남겨두었고 더 이상 stow 하지 않는다.
@@ -98,6 +98,20 @@ git config --global ghq.root '~/.ghq'
 
 - prefix 는 `ctrl+a` (tmux 시절 유지). Ghostty 의 `cmd+t`/`ctrl+tab`/`ctrl+shift+tab` 이
   `\x01` 시퀀스로 이 prefix 를 때린다.
+
+| 키 | 동작 |
+|---|---|
+| `prefix+v` · `prefix+s`/`prefix+minus` | pane 분할. `prefix+s` 는 tmux 시절 유지 — settings 는 `prefix+comma` 로 밀려났다 |
+| `prefix+shift+v` · `prefix+alt+v` | pane 을 새 탭으로 떼어내기 · 다른 탭에 합치기 (tmux 의 break/join-pane) |
+| `prefix+hjkl` | pane 이동 (herdr 기본값이 이미 tmux 와 같다) |
+| `prefix+1..9` · `prefix+ctrl+h/l` · `ctrl+alt+h/l` | 탭. herdr 엔 tmux 의 `bind -r` 이 없어 연타용으로 prefix 없는 조합을 함께 둔다 |
+| `prefix+shift+1..9` · `prefix+shift+j/k` | workspace |
+| `prefix+alt+1..9` · `prefix+alt+j/k` | agent |
+
+수식어로 대상을 가른다 — **shift = workspace, alt = agent**. workspace/agent 전환은 herdr
+기본값이 전부 비어 있어 직접 채운 것이다. 이유는 [config.toml](herdr/.config/herdr/config.toml)
+주석에 있다.
+
 - `prefix+S` — 프로젝트 진입점. zoxide 후보를 fzf 로 고르면 workspace 를 열거나 만든다.
   중복 판정은 생성 시 새겨둔 metadata 토큰 `ws_root`(원본 절대경로)로 한다.
   `alt+s`/`ctrl+alt+s` 로도 열린다. `switch_ascii_input_source_in_prefix` 는 prefix
@@ -220,7 +234,31 @@ herdr 와 붙이는 방법은 [herdr 절의 pi 연동](#pi-연동) 참고.
 
 ## claude
 
-Claude Code 전역 지침 `~/.claude/CLAUDE.md` (미니멀 유지).
+지침은 두 스코프로 나뉜다. **user** 는 `claude/.claude/CLAUDE.md` → stow → `~/.claude/CLAUDE.md`
+(모든 프로젝트에 적용), **project** 는 레포 루트의 [CLAUDE.md](CLAUDE.md) (이 레포에서만).
+project 가 뒤에 로드되므로 충돌하면 project 가 이긴다.
+
+`~/.claude` 는 **저작물과 생성물이 한 디렉토리에 섞여 있다** — 500M 넘는 대부분이 생성물이라
+무엇을 빼느냐가 핵심이다.
+
+| 넣는 것 | 빼는 것 |
+|---|---|
+| `CLAUDE.md`, `settings.json` | `~/.claude.json` — OAuth 토큰 (디렉토리 **밖**) |
+| `skills/clear-draft` | `projects/` — 대화 transcript. 읽은 파일·명령 출력이 평문으로 남는다 |
+| `statusline-command.sh`, `subagent-statusline.sh` | `plugins/` — `settings.json` 의 목록으로 재설치된다 |
+| | `hooks/herdr-agent-state.sh` — herdr 생성물 (pi 확장과 같은 이유) |
+| | `history.jsonl`, `file-history/`, `shell-snapshots/` 등 캐시 |
+
+```bash
+stow --no-folding claude          # 폴딩하면 projects/ 391M 가 레포로 들어온다
+herdr integration install claude  # settings.json 의 SessionStart 훅이 이걸 참조한다
+```
+
+**순서 주의** — 훅 스크립트는 herdr 가 생성하므로 레포에 없다. 먼저 깔지 않으면 훅이 없는
+경로를 가리키지만, Claude Code 는 경고만 내고 정상적으로 뜬다.
+
+`~/.claude/skills/` 의 일부는 `~/.agents/skills/` 를 가리키는 심볼릭 링크다 — 별도 도구가
+관리하므로 이 패키지는 건드리지 않는다.
 
 ---
 
@@ -229,4 +267,9 @@ Claude Code 전역 지침 `~/.claude/CLAUDE.md` (미니멀 유지).
 ```bash
 cd ~/dotfiles
 stow -R <package>
+stow -R --no-folding herdr claude   # 이 둘은 폴딩 금지 — 옵션을 빠뜨리면 생성물이 딸려온다
 ```
+
+`herdr` 와 `claude` 는 대상 디렉토리가 실제 디렉토리라 **파일별로** 링크가 걸린다.
+그래서 레포에 파일을 새로 추가하면 링크가 자동으로 생기지 않는다 — `stow -R` 을 다시 돌려야
+한다. 안 돌리면 그 파일만 조용히 없는 상태가 된다 (팝업이 `exit 127` 로 즉사하는 식).

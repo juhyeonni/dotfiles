@@ -1,6 +1,22 @@
 # dotfiles
 
-Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
+에이전트를 터미널의 1급 시민으로 다루는 macOS 개발 환경. Claude Code 와 pi 를 pane 에
+띄워두고 상태를 사이드바에서 본다. [GNU Stow](https://www.gnu.org/software/stow/) 로 관리한다.
+
+각 설정에는 **왜 그렇게 했는지**가 함께 적혀 있다 — 되돌린 시도, 밟은 함정, 측정값.
+
+## 핵심 선택
+
+흔한 dotfiles 와 갈리는 지점 넷.
+
+- **[herdr](#herdr) 로 tmux 를 대체했다.** 에이전트가 blocked 인지 working 인지를 사이드바에
+  띄우는 멀티플렉서다. 세션 복원이 내장이라 tmux-resurrect 도 필요 없다.
+- **[한/영/일 전환](#입력-소스-전환-karabiner--hammerspoon)을 두 프로그램이 나눠 맡는다.**
+  Karabiner 단독으로 해보고 실패했다 — 그 기록과 근거 링크를 지우지 않고 남겨 뒀다.
+- **[zsh 설정이 계층으로 나뉜다](#zsh).** 런타임을 하나도 안 깐 새 머신에서는 `rc.d` 전체가
+  통째로 no-op 이 된다. `.zshrc` 는 건드릴 일이 없다.
+- **[`~/.claude` 는 저작물만 골라 stow 한다](#claude).** 500M 넘는 생성물이 설정과 한
+  디렉토리에 살아서, 무엇을 넣느냐보다 무엇을 빼느냐가 어렵다.
 
 ## Packages
 
@@ -9,8 +25,6 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
 | nvim | `.config/nvim/` (LazyVim) |
 | herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
-| tmux | `.config/tmux/tmux.conf` (herdr 로 이주 중 — 제거 예정) |
-| sesh | `.config/sesh/sesh.toml`, `dev-layout.sh` (프로젝트 = 세션 3-window) |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` (키 리매핑) |
@@ -30,7 +44,7 @@ stow zsh nvim git ghostty karabiner hammerspoon
 stow --no-folding herdr claude   # 둘 다 생성물이 설정과 같은 디렉토리에 산다 — 폴딩하면 레포로 들어온다
 ```
 
-`tmux`/`sesh` 는 herdr 이주 중 롤백용으로 레포에만 남겨두었고 더 이상 stow 하지 않는다.
+`tmux`/`sesh` 패키지는 herdr 이주 전 구성이다. 더 이상 stow 하지 않고 롤백용으로만 남겨 뒀다 —
 되돌리려면 `brew install tmux sesh && stow tmux sesh` 후 `.zshrc` 의 auto-attach 를 tmux 로 바꾼다.
 
 stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
@@ -161,20 +175,13 @@ herdr --skill > ~/.pi/agent/skills/herdr/SKILL.md   # pi 가 herdr 를 조작할
 없어서 herdr 가 잡을 승인 UI 자체가 없다. 질문을 시켜도 텍스트로 출력하고 `idle`
 로 간다. 승인 대기를 감지하려면 질문 UI 를 제공하는 익스텐션이 따로 필요하다.
 
-## tmux
-
-- **TPM(플러그인 매니저)**: 첫 tmux 실행 시 `tmux.conf`의 auto-install 블록이 자동으로 clone/설치.
-- **extrakto**: python3 필요 (macOS 기본 포함).
-
-주요 키: `prefix+g` 스크래치 팝업 · `prefix+C-c` Claude 팝업 · `prefix+G` lazygit · `prefix+S` sesh 세션 스위처 · `prefix+tab` extrakto
-
-## sesh
-
-`sesh.toml`로 세션을 정의하고 `dev-layout.sh`가 프로젝트당 3-window 레이아웃을 구성한다. tmux에서 `prefix+S`로 세션 스위처를 띄운다. zoxide 히스토리를 활용하므로 `zoxide`(brew 목록 포함) 필요.
-
 ## ghostty
 
-- **폰트**: `MuxJK` 폰트 사용 — 별도 설치 필요.
+터미널 에뮬레이터. macOS 습관을 herdr 로 넘기는 키 바인딩이 여기 있다 —
+`cmd+t` → `\x01c`(새 탭), `ctrl+tab` → `\x01n`, `cmd+w` → `\x01D` 처럼 herdr prefix
+시퀀스로 번역한다. `shift+enter` 는 `\x1b\x0d` 로 보내 에이전트에서 줄바꿈이 먹게 한다.
+
+**폰트**: `MuxJK` — 별도 설치가 필요하다.
 
 ## git
 

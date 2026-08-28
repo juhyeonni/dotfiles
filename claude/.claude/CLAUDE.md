@@ -1,5 +1,14 @@
-# Global Instructions
+## Preferences
+- Ask before committing to git
+- Prefer editing existing files over creating new ones
+- Run tests after making changes
+- Keep code simple — no over-engineering
+- No unnecessary comments or docstrings
 
-- 설명과 대화는 한국어로, 코드·커밋 메시지·식별자는 영어로 작성한다.
-- 커밋 메시지는 conventional commits 스타일 (feat:, fix:, docs:, refactor:, chore:).
-- 완료를 선언하기 전에 가능한 검증 수단(테스트, 빌드, 린트)이 있으면 실행해서 확인한다.
+## Workflow
+- When something goes sideways, stop and re-plan — don't keep pushing
+- After finishing a task: run typecheck, tests, and lint before calling it done
+
+## Style
+- Prefer small, focused functions
+- Use early returns over nested conditionals

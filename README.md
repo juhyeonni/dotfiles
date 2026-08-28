@@ -15,7 +15,7 @@ Personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/).
 | git | `.gitconfig`, `.config/git/ignore` |
 | karabiner | `.config/karabiner/karabiner.json` (키 리매핑) |
 | hammerspoon | `.hammerspoon/init.lua` (입력 소스 전환) |
-| claude | `.claude/CLAUDE.md` (전역 지침 — 미니멀 유지) |
+| claude | `.claude/` — CLAUDE.md(유저 스코프), `settings.json`, statusline, `skills/` |
 
 ## Bootstrap
 

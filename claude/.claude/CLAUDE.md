@@ -1,3 +1,8 @@
+## Language
+- Explanations and conversation in Korean
+- Code, commit messages, and identifiers in English
+- Comment language is left to each repo
+
 ## Preferences
 - Ask before committing to git
 - Prefer editing existing files over creating new ones

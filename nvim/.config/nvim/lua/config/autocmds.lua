@@ -1,6 +1,6 @@
 -- Disable the concealing in some file formats
 -- The default conceallevel is 3 in LazyVim
--- markdown은 render-markdown.nvim이 창 단위로 conceallevel을 관리하므로 제외
+-- markdown is excluded: render-markdown.nvim manages conceallevel per window
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "json", "jsonc" },
 	callback = function()
@@ -8,8 +8,8 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- render-markdown의 고정폭 표가 줄바꿈으로 깨지지 않도록 markdown은 wrap을 끔
--- 긴 산문 줄은 가로 스크롤로 처리. 버퍼별 토글: <leader>uw
+-- wrap is off for markdown so render-markdown's fixed-width tables do not break on line wrap.
+-- Long prose lines scroll horizontally instead. Per-buffer toggle: <leader>uw
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "markdown",
 	callback = function()

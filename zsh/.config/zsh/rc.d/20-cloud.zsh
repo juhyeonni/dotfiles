@@ -1,7 +1,7 @@
-# Google Cloud SDK — 설치돼 있을 때만.
+# Google Cloud SDK — only when installed.
 #
-# completion.zsh.inc 는 무겁다(측정: gcloud + SDKMAN 합쳐 약 40ms).
-# gcloud 를 자주 안 쓴다면 completion 줄만 지우는 것으로 대부분을 회수할 수 있다.
+# completion.zsh.inc is heavy (measured: ~40ms for gcloud + SDKMAN combined).
+# If you rarely use gcloud, deleting just the completion line reclaims most of it.
 
 if [[ -d $HOME/google-cloud-sdk ]]; then
   [[ -f $HOME/google-cloud-sdk/path.zsh.inc ]] && source "$HOME/google-cloud-sdk/path.zsh.inc"

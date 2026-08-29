@@ -53,10 +53,10 @@ macos-option-as-alt = true
 scrollback-limit = 100000
 title-report = false
 
-# 창/탭 상태 복원
+# Restore window/tab state
 window-save-state = always
 
-# BEL 수신 시 Dock 아이콘 바운스 + 사운드 + 타이틀 표시
+# On BEL: bounce the Dock icon, play a sound, and mark the title
 bell-features = system, attention, title
 
 # ==============================================
@@ -64,12 +64,13 @@ bell-features = system, attention, title
 # ==============================================
 keybind = cmd+shift+r=reload_config
 
-# 한글 입력 상태에서도 prefix 가 먹도록: 레이아웃/IME 무시하고 물리 키 위치(W3C KeyA)로 매칭
+# Keep the prefix working while the Korean IME is active: ignore layout/IME and match the
+# physical key position (W3C KeyA)
 keybind = ctrl+key_a=text:\x01
 
 # herdr integration (\x01 = ctrl+a = herdr prefix)
-# cmd+w 가 close_workspace 인 이유: close_tab 은 확인 프롬프트가 없어서
-# 탭이 하나뿐인 space 를 그냥 날린다.
+# cmd+w maps to close_workspace because close_tab has no confirmation prompt and would
+# silently destroy a space that has only one tab.
 keybind = cmd+t=text:\x01c
 keybind = cmd+w=text:\x01D
 keybind = ctrl+tab=text:\x01n
@@ -82,7 +83,7 @@ keybind = shift+enter=text:\x1b\x0d
 keybind = cmd+up=jump_to_prompt:-1
 keybind = cmd+down=jump_to_prompt:1
 
-# Quick terminal (어느 앱에서든 드롭다운, macOS 손쉬운 사용 권한 필요)
-# zshrc에서 GHOSTTY_QUICK_TERMINAL 감지 시 tmux를 띄우지 않음
-# cmd+`는 macOS '앱의 다음 창' 기본 단축키와 충돌하여 cmd+escape 사용
+# Quick terminal (drops down over any app; needs macOS Accessibility permission)
+# .zshrc skips auto-attach when it sees GHOSTTY_QUICK_TERMINAL
+# cmd+` collides with the macOS "next window in app" default, so cmd+escape is used
 keybind = global:cmd+escape=toggle_quick_terminal

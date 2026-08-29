@@ -54,7 +54,7 @@ return {
 					},
 				},
 				html = {},
-				marksman = {}, -- markdown LSP: 링크/헤딩 자동완성·참조 점프·끊긴 링크 진단
+				marksman = {}, -- markdown LSP: link/heading completion, reference jumps, broken-link diagnostics
 				yamlls = {
 					settings = {
 						yaml = {
@@ -112,7 +112,7 @@ return {
 			},
 		},
 		init = function()
-			-- 사용자 정의 키맵 추가 (init으로 LazyVim config 보존)
+			-- Add custom keymaps (via init, to preserve LazyVim's own config)
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(ev)

@@ -6,18 +6,18 @@ keymap.set("n", "x", '"_x')
 keymap.set("n", "<Leader>p", '"-1p')
 keymap.set("n", "<Leader>P", '"-1P')
 keymap.set("v", "<Leader>p", '"-1p')
--- 참고: blackhole change/delete (<leader>c/x)는 LazyVim의 code/diagnostics 그룹
--- (<leader>ca 등)을 가려 제거함. 필요하면 표준 "_c / "_dd 를 직접 사용.
+-- Note: the blackhole change/delete maps (<leader>c/x) shadowed LazyVim's code/diagnostics
+-- groups (<leader>ca and friends), so they were removed. Use plain "_c / "_dd when needed.
 
--- dw는 표준 동작(커서→다음 단어 삭제) 유지 — 이전의 vb"_d 오버라이드 제거
+-- dw keeps its standard behaviour (delete from cursor to next word) — the old vb"_d override is gone
 
--- Select all (<C-a>는 herdr prefix·dial.nvim increment와 충돌하여 <leader>A로 이동)
+-- Select all (<C-a> collided with the herdr prefix and dial.nvim increment, so it moved to <leader>A)
 keymap.set("n", "<leader>A", "gg<S-v>G", { desc = "Select all" })
 
--- New tab (<Tab>/<S-Tab>은 bufferline이 담당하므로 여기선 te만)
+-- New tab (<Tab>/<S-Tab> belong to bufferline, so only te is defined here)
 keymap.set("n", "te", ":tabedit", { desc = "New Tab" })
 
--- Split window (flash의 s 점프와 충돌하던 ss/sv 제거 — LazyVim 기본 <leader>- / <leader>| 사용)
+-- Split window (ss/sv removed; they collided with flash's s jump — use LazyVim's <leader>- / <leader>|)
 
 -- Resize window
 keymap.set("n", "<C-w><left>", "<C-w><")
@@ -28,7 +28,7 @@ keymap.set("n", "<C-w><down>", "<C-w>-")
 -- Diagnostic (use ]d / [d from LazyVim defaults)
 
 keymap.set("n", "<leader>j", vim.lsp.buf.hover)
--- <leader>q는 LazyVim quit 그룹이므로 진단 loclist는 <leader>Q로 이동
+-- <leader>q is LazyVim's quit group, so the diagnostics loclist moved to <leader>Q
 keymap.set("n", "<leader>Q", vim.diagnostic.setloclist, { desc = "Diagnostics to loclist" })
 
 keymap.set("n", "<leader>r", function()
@@ -47,7 +47,7 @@ keymap.set("i", "<C-@>", function()
 	require("blink.cmp").show()
 end, { desc = "Show completion menu" })
 
--- Toggle 진단 표시: 한 줄 가상텍스트 ↔ 여러 줄(virtual_lines, nvim 0.11)
+-- Toggle diagnostic display: single-line virtual text <-> multi-line (virtual_lines, nvim 0.11)
 keymap.set("n", "<leader>uV", function()
 	local enabled = vim.diagnostic.config().virtual_lines
 	if enabled then

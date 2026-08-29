@@ -11,7 +11,7 @@ vim.opt.smartindent = true
 vim.opt.hlsearch = true
 vim.opt.backup = false
 vim.opt.showcmd = true
-vim.opt.cmdheight = 0 -- noice가 cmdline을 띄우므로 평소엔 0줄로 숨김
+vim.opt.cmdheight = 0 -- noice renders the cmdline, so keep it hidden at 0 rows normally
 vim.opt.laststatus = 3
 vim.opt.expandtab = true
 vim.opt.scrolloff = 10
@@ -33,9 +33,9 @@ vim.opt.splitkeep = "cursor"
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true
 
--- 모든 떠있는 창(LSP hover·진단 등) 테두리를 둥글게 통일 (nvim 0.11+)
+-- Round the border on every floating window (LSP hover, diagnostics, ...) for consistency (nvim 0.11+)
 vim.opt.winborder = "rounded"
--- 완성 메뉴/팝업을 살짝 투명하게 (투명 테마와 어울리게, 약하게)
+-- Make the completion menu/popup slightly translucent (subtle, to match the transparent theme)
 vim.opt.pumblend = 10
 
 vim.opt.linebreak = true

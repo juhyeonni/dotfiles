@@ -19,7 +19,7 @@ return {
 			},
 			transparent = true,
 			theme = "dragon",
-			-- background이 theme보다 우선하므로 같이 지정해야 함
+			-- background takes precedence over theme, so both must be set
 			background = { dark = "dragon", light = "lotus" },
 		},
 	},

@@ -1,13 +1,13 @@
 return {
-	-- 4. 스크롤 고정 헤더: 긴 함수/블록 안에서 스크롤해도 상단에 헤더 줄 고정
+	-- 4. Sticky scroll header: pins the header line at the top while scrolling inside a long function/block
 	{
 		"nvim-treesitter/nvim-treesitter-context",
 		event = "BufReadPost",
 		opts = {
-			max_lines = 3, -- 최대 3줄까지만 고정 표시
+			max_lines = 3, -- pin at most 3 lines
 			multiline_threshold = 1,
 			trim_scope = "outer",
-			separator = "─", -- 고정 영역 아래 구분선
+			separator = "─", -- divider under the pinned region
 		},
 		keys = {
 			{
@@ -20,7 +20,7 @@ return {
 		},
 	},
 
-	-- 3. breadcrumbs: 창 상단(winbar)에 "파일 > 클래스 > 함수" 경로 표시
+	-- 3. breadcrumbs: show the "file > class > function" path in the winbar
 	{
 		"Bekaboo/dropbar.nvim",
 		event = "BufReadPost",

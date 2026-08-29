@@ -1,34 +1,34 @@
 #!/usr/bin/env bash
-# 프로젝트 진입점 (sesh 대체): 고른 경로의 workspace 가 있으면 focus, 없으면 create.
-# ctrl-g/ctrl-n 으로 ghq clone/create 까지 한다.
+# Project entry point (replaces sesh): focus the workspace for the picked path, create it if absent.
+# ctrl-g / ctrl-n also run ghq clone/create.
 #
-# 중복 판정은 라벨이 아니라 경로로 한다(~/work/api 와 ~/oss/api 는 basename 이 같다).
-# workspace 객체에 cwd 가 없어서 생성 시 metadata 토큰 ws_root 에 새겨두고 그걸로 찾는다.
-# pane 의 cwd 를 안 쓰는 이유는 셸에서 cd 하면 값이 흔들리기 때문.
-# 한계: picker 밖에서 만든 workspace 에는 이 토큰이 없어 같은 경로가 중복될 수 있다.
-# set -e 는 쓰지 않는다. `git_repos | head` 에서 head 가 파이프를 닫으면 SIGPIPE(141)로
-# 스크립트가 죽는다. 실패는 아래에서 명시적으로 처리한다.
+# Duplicates are judged by path, not label (~/work/api and ~/oss/api share a basename).
+# A workspace object has no cwd, so the path is stamped into the ws_root metadata token at
+# creation time and looked up from there. A pane's cwd is not used because cd in the shell moves it.
+# Limitation: workspaces created outside this picker carry no token, so a path can be duplicated.
+# No `set -e` here. In `git_repos | head`, head closing the pipe kills the script with SIGPIPE (141).
+# Failures are handled explicitly below instead.
 set -uo pipefail
 
 for cmd in zoxide fzf jq ghq herdr; do
-  command -v "$cmd" >/dev/null || { echo "필요한 명령이 없습니다: $cmd" >&2; exit 1; }
+  command -v "$cmd" >/dev/null || { echo "required command not found: $cmd" >&2; exit 1; }
 done
 
 GHQ_ROOT="$(ghq root)"
 TOP=8
-# zoxide 는 마지막 접근 시각을 노출하지 않고, 점수는 rank(누적 횟수) x 최근성 배수라
-# 한 세션 안에서는 배수가 상쇄돼 사실상 빈도순이 된다. "최근에 연 순서"는 직접 기록한다.
+# zoxide exposes no last-access time, and its score is rank (cumulative hits) x a recency multiplier,
+# which cancels out within a session and degrades to frequency order. Track "recently opened" here.
 MRU_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-mru"
 MRU_MAX=50
 
-# 팝업은 명령이 끝나면 즉시 닫힌다 — 에러를 읽을 시간을 준다.
+# The popup closes the instant the command exits — give the user time to read the error.
 fail() {
-  printf '\n%s\n\n계속하려면 아무 키나 누르세요...' "$1" >&2
+  printf '\n%s\n\nPress any key to continue...' "$1" >&2
   read -rsn1
 }
 
-# "<표시>\t<절대경로>". ghq 는 owner/repo 로 줄인다 — ~/.ghq/github.com/ 은 모든
-# 항목에 똑같이 붙는 잡음이라 지우면 한 줄이 짧아지고 구분도 형태로 드러난다.
+# "<label>\t<absolute path>". ghq entries shrink to owner/repo — ~/.ghq/github.com/ is noise
+# repeated on every row; dropping it shortens the line and lets the shape do the distinguishing.
 render() {
   while IFS= read -r p; do
     [[ -n $p ]] || continue
@@ -51,8 +51,8 @@ mru_add() {
   local tmp
   mkdir -p "${MRU_FILE%/*}"
   tmp="$(mktemp)" || return 0
-  # pipefail 주의: 그룹이 0 으로 끝나야 뒤의 mv 가 돈다. [[ -f ]] 가 거짓이거나
-  # grep 이 0 줄을 반환(-v 로 전부 걸러짐)해도 실패로 잡히면 안 된다.
+  # pipefail caveat: the group must exit 0 for the mv to run. A false [[ -f ]], or grep returning
+  # 0 lines (everything filtered out by -v), must not be counted as failure.
   {
     printf '%s\n' "$1"
     [[ -f $MRU_FILE ]] && { grep -vxF "$1" "$MRU_FILE" || true; }
@@ -60,14 +60,14 @@ mru_add() {
   } | head -n "$MRU_MAX" >"$tmp" && mv "$tmp" "$MRU_FILE"
 }
 
-# 지금 있는 workspace 는 기본 목록에서 뺀다 — 이미 거기 있으므로 갈 일이 없고,
-# 빼면 1순위가 "직전에 있던 곳"이 되어 alt-tab 처럼 동작한다.
+# The current workspace is dropped from the default list — no point jumping to where you already
+# are, and dropping it makes the top entry "the last place you were", which behaves like alt-tab.
 current_ws_root() {
   herdr workspace list |
     jq -r '.result.workspaces[]? | select(.focused == true) | .tokens.ws_root // empty' | head -n1
 }
 
-# MRU 를 앞에, 모자라면 zoxide 순으로 채운다(새 머신에서 MRU 가 비어도 목록이 빈다).
+# MRU first, then zoxide order to fill the rest (on a new machine the MRU is empty).
 list_recent() {
   local cur; cur="$(current_ws_root)"
   { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; git_repos; } |
@@ -77,7 +77,7 @@ list_recent() {
     done | head -n "$TOP"
 }
 
-# ghq 목록을 zoxide rank 순으로. zoxide 에 없는 리포는 뒤로 민다.
+# ghq entries ordered by zoxide rank. Repos zoxide has never seen are pushed to the back.
 list_ghq() {
   awk 'NR == FNR { idx[$0] = FNR; next }
        { printf "%d\t%s\n", ($0 in idx ? idx[$0] : 999999999), $0 }' \
@@ -86,12 +86,12 @@ list_ghq() {
 
 open_workspace() {
   local sel="$1" target existing id
-  [[ -d $sel ]] || { fail "경로가 없습니다: $sel"; return 1; }
-  # macOS 는 /tmp → /private/tmp 라 링크를 푼 절대경로로 맞춘다.
+  [[ -d $sel ]] || { fail "no such path: $sel"; return 1; }
+  # On macOS /tmp is a link to /private/tmp, so normalize to the resolved absolute path.
   target="$(cd "$sel" && pwd -P)"
 
-  # zoxide 훅은 cd 만 잡는다. workspace 를 여는 건 cd 가 아니므로 직접 올려야
-  # frecency 가 "최근 연 workspace" 랭킹이 된다.
+  # The zoxide hook only sees cd. Opening a workspace is not a cd, so bump the score manually
+  # to keep frecency ranking "recently opened workspaces".
   zoxide add "$target"
   mru_add "$target"
 
@@ -106,30 +106,30 @@ open_workspace() {
 
   id="$(herdr workspace create --cwd "$target" --label "${target##*/}" --focus |
     jq -r '.result.workspace.workspace_id')"
-  # 실패해도 진입은 이미 끝났다. 다음에 같은 경로를 고르면 중복 생성될 뿐.
+  # A failure here is harmless — entry already happened. Picking the same path again just duplicates.
   herdr workspace report-metadata "$id" \
     --source workspace-jump --token "ws_root=$target" >/dev/null || true
 }
 
-# ghq get/create 후 어디에 생겼는지 찾는다. 쿼리가 URL 형태여도 안전하도록
-# before/after 차집합을 쓰고, 이미 있던 경우(get 이 아무 일도 안 함)만 -e 로 떨어진다.
+# Find where ghq get/create put things. A before/after set difference keeps URL-shaped queries safe;
+# only the already-present case (get did nothing) falls through to the -e lookup.
 ghq_run_and_open() {
   local action="$1" query="$2" before new
   before="$(ghq list -p | sort)"
   if ! ghq "$action" "$query"; then
-    fail "ghq $action 실패: $query"
+    fail "ghq $action failed: $query"
     return 1
   fi
   new="$(comm -13 <(printf '%s\n' "$before") <(ghq list -p | sort) | head -n1)"
   [[ -n $new ]] || new="$(ghq list -p -e "$query" | head -n1)"
-  [[ -n $new ]] || { fail "받았지만 경로를 찾지 못했습니다: $query"; return 1; }
+  [[ -n $new ]] || { fail "fetched, but could not locate the path: $query"; return 1; }
   open_workspace "$new"
 }
 
 mode=default
 while true; do
-  # 2행 고정. 1행은 지금 보고 있는 목록과 그것을 바꾸는 키, 2행은 목록이 아니라
-  # **입력한 문자열**에 작용하는 키 — 이 구분이 안 보여서 헤더를 나눴다.
+  # Two fixed rows. Row 1 is the list you are looking at and the keys that change it; row 2 is the
+  # keys that act on **the typed string**, not on the list — splitting the header makes that visible.
   hdr2='typed name → ctrl-g clone · ctrl-n create'
   case "$mode" in
   ghq) src="$(list_ghq | render)"; hdr1='[ghq] enter open · ctrl-t all' ;;

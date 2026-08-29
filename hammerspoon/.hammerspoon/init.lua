@@ -31,16 +31,16 @@ function jpn_kor_toggle_with_right_option()
 end
 
 -- ==============================================
---  Ghostty 키 한글 대응
+--  Korean IME handling for Ghostty keys
 -- ==============================================
--- 한글 입력 중에도 herdr 키가 먹도록, 아래 키를 누르면 영문으로 강제 전환한다.
--- 이벤트 자체는 그대로 통과시킨다(return false).
+-- Force a switch to English on the keys below so herdr bindings still work while the
+-- Korean IME is active. The event itself passes through untouched (return false).
 --
--- herdr 의 switch_ascii_input_source_in_prefix 는 prefix 모드 '안에서만' ASCII 로
--- 바꾸므로, prefix 진입 자체(ctrl+a)와 prefix 없는 직접 바인딩(alt+s)은 못 덮는다.
--- 그 두 구멍을 여기서 메운다.
+-- herdr's switch_ascii_input_source_in_prefix only switches to ASCII *inside* prefix mode,
+-- so it covers neither entering the prefix (ctrl+a) nor prefix-less direct bindings (alt+s).
+-- Those two gaps are filled here.
 --
--- 오른쪽 option 은 karabiner 가 f17 로 가져가므로, 여기 도달하는 alt 는 항상 왼쪽이다.
+-- Karabiner claims the right option as f17, so any alt reaching this point is the left one.
 local GHOSTTY_BUNDLE_ID = "com.mitchellh.ghostty"
 local forceEnglishKeys = {
 	{ code = 0, mods = { "ctrl" } }, -- kVK_ANSI_A · ctrl+a : herdr prefix
@@ -50,7 +50,7 @@ local forceEnglishKeys = {
 local ghostty_force_english = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(e)
 	local code, flags = e:getKeyCode(), e:getFlags()
 	for _, k in ipairs(forceEnglishKeys) do
-		-- 매 키 입력마다 도는 경로라, 값싼 키 비교를 먼저 하고 앱 조회는 매치될 때만 한다.
+		-- This runs on every keystroke, so compare the cheap key first and only query the app on a match.
 		if code == k.code and flags:containExactly(k.mods) then
 			if hs.application.frontmostApplication():bundleID() == GHOSTTY_BUNDLE_ID then
 				hs.keycodes.currentSourceID(inputEnglish)
@@ -65,7 +65,7 @@ ghostty_force_english:start()
 -- ==============================================
 --  Keybindings
 -- ==============================================
--- f19/f17 은 karabiner.json 의 simple_modifications 로 리맵된 키다.
+-- f19/f17 are keys remapped by simple_modifications in karabiner.json.
 -- (caps_lock -> f19, right_option -> f17)
 -- reference: https://www.hammerspoon.org/docs/hs.hotkey.html
 hs.hotkey.bind({}, "f19", eng_kor_toggle_with_capslock)

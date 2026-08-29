@@ -1,5 +1,5 @@
 return {
-	-- Surround: ys(추가) / ds(삭제) / cs(변경) — 따옴표·괄호·태그 감싸기
+	-- Surround: ys (add) / ds (delete) / cs (change) — wrap quotes, brackets, tags
 	{
 		"kylechui/nvim-surround",
 		version = "*",

@@ -151,7 +151,7 @@ return {
 			local actions = require("telescope.actions")
 			local fb_actions = require("telescope").extensions.file_browser.actions
 
-			-- 기본값 초기화
+			-- reset to defaults
 			opts = opts or {}
 			opts.defaults = opts.defaults or {}
 			opts.extensions = opts.extensions or {}
@@ -229,7 +229,7 @@ return {
 
 	{ "wakatime/vim-wakatime", lazy = false },
 
-	-- 프로젝트 전체 찾기/바꾸기 (<leader>sr) — 여러 파일 일괄 치환 UI
+	-- Project-wide find/replace (<leader>sr) — bulk substitution UI across files
 	{
 		"MagicDuck/grug-far.nvim",
 		cmd = "GrugFar",
@@ -255,19 +255,19 @@ return {
 		"MeanderingProgrammer/render-markdown.nvim",
 		ft = { "markdown", "codecompanion" },
 		opts = {
-			-- 커서가 있는 줄만 raw 마크업을 보여줌(편집 편의), 나머지는 렌더
+			-- Show raw markup only on the cursor line (easier editing); render everything else
 			anti_conceal = { enabled = true },
-			-- 헤딩 레벨에 따라 본문을 들여써서 문서처럼 계층이 보이게 함
+			-- Indent body text by heading level so the hierarchy reads like a document
 			indent = {
 				enabled = true,
-				per_level = 2, -- 레벨당 들여쓰기 칸 수
-				skip_level = 1, -- H1 아래 본문은 들여쓰지 않음(최상위는 평평하게)
+				per_level = 2, -- indent columns per level
+				skip_level = 1, -- do not indent body under H1 (keep the top level flat)
 				skip_heading = false,
 			},
 			heading = {
 				sign = false,
 				icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
-				width = "full", -- 제목 줄 전체에 배경 바 → 섹션 구분 또렷
+				width = "full", -- background bar across the whole heading line -> clearer section breaks
 				border = true,
 			},
 			code = {
@@ -291,17 +291,17 @@ return {
 			},
 			pipe_table = {
 				enabled = true,
-				preset = "round", -- 둥근 모서리 테두리
-				-- 'padded': 각 셀을 컬럼 최대 표시폭에 맞춰 패딩 → 소스가 들쭉날쭉해도 정렬됨
-				-- (한글 등 CJK는 strdisplaywidth 기반 2칸으로 계산)
+				preset = "round", -- rounded corner border
+				-- 'padded': pads each cell to the column's max display width, so ragged source still aligns
+				-- (CJK characters count as 2 columns via strdisplaywidth)
 				cell = "padded",
 				padding = 1,
-				-- 정렬 행(:---, ---:, :--:)에 방향 표시
+				-- Show the direction on alignment rows (:---, ---:, :--:)
 				alignment_indicator = "━",
-				-- 위/아래 테두리를 virtual line으로 그려, 표 주변 빈 줄에 의존하지 않음
+				-- Draw top/bottom borders as virtual lines, so it does not rely on blank lines around the table
 				border_virtual = true,
 			},
-			-- > [!NOTE] 같은 GitHub 콜아웃 강조 (기본 세트 사용)
+			-- Highlight GitHub callouts like > [!NOTE] (using the default set)
 			quote = { icon = "▎" },
 		},
 	},

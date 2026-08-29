@@ -3,9 +3,9 @@ return {
 	opts = {
 		filesystem = {
 			filtered_items = {
-				visible = true, -- 기본적으로 숨김 파일 보이기
-				hide_dotfiles = false, -- 점(.) 파일 표시
-				hide_gitignored = false, -- Git에서 무시된 파일 표시
+				visible = true, -- show hidden files by default
+				hide_dotfiles = false, -- show dotfiles
+				hide_gitignored = false, -- show git-ignored files
 			},
 		},
 	},

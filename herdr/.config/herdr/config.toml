@@ -1,26 +1,26 @@
-# herdr — 터미널 멀티플렉서. 계층: workspace > tab > pane.
-# 기본값은 `herdr --default-config`, 검사는 `herdr config check`.
-# 고친 뒤 `herdr server reload-config` — 파일 변경을 감시하지 않는다.
+# herdr — terminal multiplexer. Hierarchy: workspace > tab > pane.
+# Defaults: `herdr --default-config`. Validate with `herdr config check`.
+# After editing, run `herdr server reload-config` — it does not watch the file.
 
 [theme]
 name = "kanagawa"
 
 [keys]
 prefix = "ctrl+a"
-split_horizontal = ["prefix+minus", "prefix+s"]  # tmux 의 prefix+s 를 되살림
-settings = "prefix+comma"                        # prefix+s 를 내준 자리
+split_horizontal = ["prefix+minus", "prefix+s"]  # brings back tmux's prefix+s
+settings = "prefix+comma"                        # moved here after giving up prefix+s
 
-# space(workspace) 전환 — herdr 기본값은 셋 다 비어 있어서 picker(prefix+w)와
-# navigate 모드(prefix+g) 말고는 이동 수단이 없었다.
-# 숫자 체계를 맞춘다: prefix+1..9 = tab, prefix+shift+1..9 = space.
-# 사이드바가 세로 목록이라 순회는 j/k 가 방향과 일치한다.
-# 탭 전환은 tmux 시절 `bind -r C-h/C-l select-window` 을 그대로 옮긴 것.
-# pane 전환(prefix+hjkl)은 herdr 기본값이 이미 tmux 와 같아 손대지 않았다 —
-# 같은 h/l 을 탭에도 주면 pane 과 충돌하므로 탭은 ctrl 을 얹어 구분한다.
+# Workspace (space) switching — all three are empty by default, so the picker
+# (prefix+w) and navigate mode (prefix+g) were the only ways to move.
+# Keep the numbering consistent: prefix+1..9 = tab, prefix+shift+1..9 = space.
+# The sidebar is a vertical list, so j/k match the direction of travel.
+# Tab switching is carried over verbatim from tmux's `bind -r C-h/C-l select-window`.
+# Pane switching (prefix+hjkl) already matches tmux by default, so it is untouched —
+# giving tabs the same h/l would collide with panes, so tabs add ctrl.
 #
-# herdr 에는 tmux 의 `bind -r`(repeat) 이 없다. prefix 계열은 한 번 누를 때마다
-# prefix 를 다시 쳐야 하므로, 연타용으로 prefix 없는 ctrl+alt+h/l 을 함께 둔다.
-# 주의: 직접 바인딩은 herdr 가 먼저 삼켜서 pane 안의 앱에 전달되지 않는다.
+# herdr has no equivalent of tmux's `bind -r` (repeat). Every prefix binding needs
+# the prefix retyped, so prefix-less ctrl+alt+h/l is kept alongside for repeat presses.
+# Note: direct bindings are swallowed by herdr and never reach the app inside the pane.
 previous_tab = ["prefix+p", "prefix+ctrl+h", "ctrl+alt+h"]
 next_tab = ["prefix+n", "prefix+ctrl+l", "ctrl+alt+l"]
 
@@ -28,31 +28,31 @@ switch_workspace = "prefix+shift+1..9"
 previous_workspace = "prefix+shift+k"
 next_workspace = "prefix+shift+j"
 
-# agent 전환 — 역시 herdr 기본값이 비어 있다. navigate 모드(prefix+g)는 사이드바에
-# 커서를 그리지만 이동 키가 workspace 와 pane 에만 정의돼 있어 agents 행에는 닿지 않는다.
-# 수식어로 대상을 가른다: shift = space, alt = agent.
+# Agent switching — also empty by default. Navigate mode (prefix+g) draws a cursor in
+# the sidebar, but its motion keys only cover workspaces and panes, never the agents row.
+# Modifiers pick the target: shift = space, alt = agent.
 focus_agent = "prefix+alt+1..9"
 previous_agent = "prefix+alt+k"
 next_agent = "prefix+alt+j"
 
-# description 은 prefix+? 도움말에서 "custom command" 대신 표시되는 이름이다.
-# 팝업 테두리의 "popup" 라벨은 herdr 가 고정한 것이라 설정으로 못 바꾼다.
-# 프로젝트 진입점 (sesh 대체).
-# alt+s 는 switch_ascii_input_source_in_prefix 가 못 덮는다 — 그건 prefix 모드
-# '안에서만' ASCII 로 바꾸는데 alt+s 는 prefix 를 안 거치기 때문. 그래서 한글 대응은
-# hammerspoon init.lua 의 forceEnglishKeys 가 맡는다 (누르면 영문으로 전환).
-# option 은 왼쪽만 — 오른쪽은 Karabiner 가 f17(한/일)로 가져간다.
+# `description` is the name shown in the prefix+? help instead of "custom command".
+# The "popup" label on the popup border is hardcoded by herdr and not configurable.
+# Project entry point (replaces sesh).
+# switch_ascii_input_source_in_prefix does not cover alt+s — it only switches to ASCII
+# *inside* prefix mode, and alt+s never goes through the prefix. Korean IME handling is
+# therefore done by forceEnglishKeys in hammerspoon init.lua (switches to English on press).
+# Left option only — Karabiner claims the right one as f17 (Korean/Japanese toggle).
 [[keys.command]]
 key = ["prefix+shift+s", "alt+s", "ctrl+alt+s"]
 type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
 description = "workspace"
 width = "60%"
-# 47행 pane 기준 약 17행. 가장 긴 [all] 모드(목록 11 + 헤더 2 + 카운터 + 프롬프트)가
-# 딱 들어간다. 더 키우면 fzf 가 아래쪽 정렬이라 위쪽이 빈다.
+# ~17 rows on a 47-row pane. The tallest mode, [all] (11 list rows + 2 header + counter +
+# prompt), fits exactly. Any taller and the top goes blank, since fzf aligns to the bottom.
 height = "40%"
 
-# lazygit/scratch 가 alt 조합인 이유: prefix+g 는 goto, prefix+shift+g 는 new_worktree.
+# lazygit/scratch use alt combos because prefix+g is goto and prefix+shift+g is new_worktree.
 [[keys.command]]
 key = "prefix+alt+g"
 type = "popup"
@@ -77,17 +77,17 @@ description = "shell"
 width = "80%"
 height = "75%"
 
-# tmux 의 break-pane. herdr 는 [keys] 에 pane 이동 액션이 없고 CLI 에만 있다.
-# split(prefix+v)의 역동작이라 shift 를 얹었다 — prefix+shift+s 는 workspace 팝업이 먼저 가져갔다.
-# pane id 는 서버가 focused pane 을 알고 있어서 env 없이도 `pane current` 로 잡힌다.
-# v 계열로 묶는다: v = split, shift+v = 떼어내기, alt+v = 다시 붙이기.
+# tmux's break-pane. herdr has no pane-move action under [keys], only in the CLI.
+# It is the inverse of split (prefix+v), so it adds shift — prefix+shift+s was already taken by the workspace popup.
+# The server knows the focused pane, so `pane current` resolves the id without any env var.
+# Grouped under v: v = split, shift+v = break out, alt+v = join back.
 [[keys.command]]
 key = "prefix+shift+v"
 type = "shell"
 command = "herdr pane move $(herdr pane current | jq -r .result.pane.pane_id) --new-tab --focus"
 description = "break pane"
 
-# join-pane. 탭을 골라야 해서 popup + fzf. 목록이 짧아 팝업도 작게.
+# join-pane. Needs a tab picker, so popup + fzf. The list is short, so the popup is small.
 [[keys.command]]
 key = "prefix+alt+v"
 type = "popup"
@@ -97,26 +97,26 @@ width = "40%"
 height = "40%"
 
 [ui]
-# herdr 의 유일한 확인 프롬프트. close_tab / close_pane 에는 없다.
+# The only confirmation prompt herdr has. close_tab / close_pane have none.
 confirm_close = true
 
 [ui.toast]
-# 바깥 터미널(Ghostty)에 위임. system 은 terminal-notifier 를 끌어들이고
-# --remote 에서 엉뚱한 머신에 뜬다. 클릭해도 pane 까지는 안 간다 — prefix+o.
+# Delegated to the outer terminal (Ghostty). `system` pulls in terminal-notifier and
+# fires on the wrong machine under --remote. Clicking it does not jump to the pane — use prefix+o.
 delivery = "terminal"
 
 [ui.sound]
 enabled = true
 
 [session]
-# `herdr integration install claude` 가 돼 있어야 동작한다.
+# Requires `herdr integration install claude` to have been run.
 resume_agents_on_restore = true
 
 [experimental]
-# 한글 자판에서도 prefix 가 먹게 한다. 부작용 없음.
+# Makes the prefix work on a Korean keyboard layout. No side effects.
 switch_ascii_input_source_in_prefix = true
 
-# Claude Code 에 한글 칠 때 후보창이 커서를 안 따라오면 둘을 함께 켠다.
-# 대가로 vim normal 모드 등에서 커서가 하나 더 보이므로 agents 로 범위를 좁힌다.
+# Enable both when the IME candidate window fails to follow the cursor while typing Korean in Claude Code.
+# The cost is an extra visible cursor in e.g. vim normal mode, so the scope is narrowed to agents.
 # reveal_hidden_cursor_for_cjk_ime = true
 # cjk_ime_agents = ["claude"]

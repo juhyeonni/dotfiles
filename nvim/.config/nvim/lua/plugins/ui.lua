@@ -106,7 +106,7 @@ return {
 		},
 	},
 
-	-- filename (dropbar breadcrumbs와 파일명이 중복되어 비활성화. 되살리려면 enabled 제거)
+	-- filename (disabled: it duplicates the dropbar breadcrumbs. Remove `enabled` to bring it back)
 	{
 		"b0o/incline.nvim",
 		enabled = false,
@@ -197,7 +197,7 @@ return {
 		config = function()
 			require("neoscroll").setup({
 				mappings = {},
-				hide_cursor = false, -- smear-cursor가 커서 모션을 일관되게 그리도록 숨기지 않음
+				hide_cursor = false, -- keep the cursor visible so smear-cursor draws motion consistently
 				stop_eof = true,
 				respect_scrolloff = false,
 				cursor_scrolls_alone = true,

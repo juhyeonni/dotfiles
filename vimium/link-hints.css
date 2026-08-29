@@ -1,0 +1,152 @@
+/* ─────────────────────────────────────────────
+   Vimium link hint custom CSS
+
+   Not a stow package. Vimium settings live in the browser profile's
+   chrome.storage.sync (LevelDB), not in a file, so there is nothing to symlink.
+   Apply: Vimium options page -> "CSS for link hints" -> paste this file -> Save.
+   Edited it in the options page instead? Paste it back here or the repo goes stale.
+   ───────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────
+   Vimium Liquid Glass Hints — Pure CSS, no JS
+   Option C: Crystal Glass — very clear glass, legibility carried by the text
+   The glass is near-transparent, so the page colors show through
+   White text with stacked dark halos stays readable on any background
+   ───────────────────────────────────────────── */
+
+@property --shine-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 25%;
+}
+
+.vimiumHintMarker {
+  /* ── Crystal-clear airy glass (very low white tint) ── */
+  background: linear-gradient(in oklab,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  ) !important;
+
+  /* ── Crystal: heavy refraction, light blur, high saturation ── */
+  backdrop-filter:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' seed='4' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='7'/></filter></svg>#g")
+    blur(10px) saturate(260%) contrast(1.05) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(260%) contrast(1.05) !important;
+
+  /* ── Crystal rim: strong fresnel highlight ── */
+  border: .5px solid rgba(255, 255, 255, 0.4) !important;
+  border-top-color: rgba(255, 255, 255, 0.88) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  border-radius: 7px !important;
+  padding: 2px 8px !important;
+
+  /* ── Chromatic aberration + depth ── */
+  box-shadow:
+    0 1px 12px rgba(0, 0, 0, 0.18),
+    inset 0 .5px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -.5px 0 rgba(0, 0, 0, 0.04),
+    -1.5px -.5px 5px -1px color(display-p3 1 .47 .39 / .22),
+    -.5px -1px 4px -1px color(display-p3 1 .7 .31 / .12),
+    1.5px -.5px 5px -1px color(display-p3 .39 .59 1 / .22),
+    .5px 1px 4px -1px color(display-p3 .67 .47 1 / .14)
+    !important;
+
+  /* ── Entry transition ── */
+  transition:
+    opacity .22s linear(0, 1),
+    transform .22s linear(0, .55 30%, 1.02 65%, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(.82) translateY(3px);
+  }
+
+  /* ── Matched state: cyan border ── */
+  &:has(.matchingCharacter) {
+    border-color: rgba(125, 211, 252, 0.6) !important;
+  }
+}
+
+/* ── Specular: animated top highlight ── */
+.vimiumHintMarker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 50% at var(--shine-x) -8%,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.14) 35%,
+      transparent 65%
+    ),
+    radial-gradient(ellipse 70% 35% at calc(100% - var(--shine-x)) 110%,
+      rgba(255, 255, 255, 0.07) 0%,
+      transparent 60%
+    );
+  mix-blend-mode: plus-lighter;
+  animation: glass-shine 5s ease-in-out infinite alternate;
+}
+
+/* ── Fresnel rim + caustic iridescence ── */
+.vimiumHintMarker::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 50%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.2) 85%,
+      rgba(255, 255, 255, 0.34) 100%
+    ),
+    linear-gradient(140deg in oklab,
+      color(display-p3 1 .47 .39 / .1) 0%,
+      color(display-p3 1 .7 .31 / .06) 22%,
+      transparent 38%,
+      transparent 62%,
+      color(display-p3 .39 .59 1 / .06) 78%,
+      color(display-p3 .67 .47 1 / .1) 100%
+    );
+  mix-blend-mode: plus-lighter;
+}
+
+/* ── Text: white with stacked dark halos (iOS lock screen style) ── */
+.vimiumHintMarker span {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  font: 700 11.5px/1 ui-monospace, 'SF Mono', monospace !important;
+  letter-spacing: .3px !important;
+  /* 4 halos, tight-and-dark out to wide-and-faint, so it separates on any background */
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 4px rgba(0, 0, 0, 0.75),
+    0 0 8px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.7) !important;
+}
+
+.vimiumHintMarker .matchingCharacter {
+  color: #7dd3fc !important;
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(125, 211, 252, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.7) !important;
+}
+
+@keyframes glass-shine {
+  0%   { --shine-x: 18%; }
+  100% { --shine-x: 72%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vimiumHintMarker {
+    transition: none;
+    @starting-style {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .vimiumHintMarker::before { animation: none; }
+}

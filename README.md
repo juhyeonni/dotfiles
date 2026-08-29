@@ -1,35 +1,41 @@
 # dotfiles
 
-에이전트를 터미널의 1급 시민으로 다루는 macOS 개발 환경. Claude Code 와 pi 를 pane 에
-띄워두고 상태를 사이드바에서 본다. [GNU Stow](https://www.gnu.org/software/stow/) 로 관리한다.
+> Korean version: [README.ko.md](README.ko.md).
 
-각 설정에는 **왜 그렇게 했는지**가 함께 적혀 있다 — 되돌린 시도, 밟은 함정, 측정값.
+A macOS dev environment that treats agents as first-class citizens of the terminal. Claude Code and
+pi live in panes, and their state shows up in the sidebar. Managed with
+[GNU Stow](https://www.gnu.org/software/stow/).
 
-## 핵심 선택
+Every config carries **why it is the way it is** — the attempts that were reverted, the traps that
+were stepped on, the numbers that were measured.
 
-흔한 dotfiles 와 갈리는 지점 넷.
+## Key choices
 
-- **[herdr](#herdr) 로 tmux 를 대체했다.** 에이전트가 blocked 인지 working 인지를 사이드바에
-  띄우는 멀티플렉서다. 세션 복원이 내장이라 tmux-resurrect 도 필요 없다.
-- **[한/영/일 전환](#입력-소스-전환-karabiner--hammerspoon)을 두 프로그램이 나눠 맡는다.**
-  Karabiner 단독으로 해보고 실패했다 — 그 기록과 근거 링크를 지우지 않고 남겨 뒀다.
-- **[zsh 설정이 계층으로 나뉜다](#zsh).** 런타임을 하나도 안 깐 새 머신에서는 `rc.d` 전체가
-  통째로 no-op 이 된다. `.zshrc` 는 건드릴 일이 없다.
-- **[`~/.claude` 는 저작물만 골라 stow 한다](#claude).** 500M 넘는 생성물이 설정과 한
-  디렉토리에 살아서, 무엇을 넣느냐보다 무엇을 빼느냐가 어렵다.
+Four places where this diverges from the usual dotfiles.
+
+- **[herdr](#herdr) replaces tmux.** It is a multiplexer that surfaces whether an agent is blocked
+  or working in the sidebar. Session restore is built in, so tmux-resurrect is unnecessary.
+- **[Input source switching](#input-source-switching-karabiner--hammerspoon) is split across two
+  programs.** Karabiner alone was tried and failed — that record, with source links, is kept rather
+  than deleted.
+- **[The zsh config is layered](#zsh).** On a new machine with no runtimes installed, the whole of
+  `rc.d` is a no-op. `.zshrc` never needs touching.
+- **[`~/.claude` is stowed selectively](#claude).** Over 500M of generated data lives in the same
+  directory as the config, so what to leave out is harder than what to put in.
 
 ## Packages
 
 | Package | Config |
 |---------|--------|
-| zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
+| zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (optional layer) |
 | nvim | `.config/nvim/` (LazyVim) |
 | herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
-| karabiner | `.config/karabiner/karabiner.json` (키 리매핑) |
-| hammerspoon | `.hammerspoon/init.lua` (입력 소스 전환) |
-| claude | `.claude/` — CLAUDE.md(유저 스코프), `settings.json`, statusline, `skills/` |
+| karabiner | `.config/karabiner/karabiner.json` (key remapping) |
+| hammerspoon | `.hammerspoon/init.lua` (input source switching) |
+| claude | `.claude/` — CLAUDE.md (user scope), `settings.json`, statusline, `skills/` |
+| vimium | `link-hints.css` (not stowed — see [below](#vimium)) |
 
 ## Bootstrap
 
@@ -41,30 +47,33 @@ brew install stow herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 stow zsh nvim git ghostty karabiner hammerspoon
-stow --no-folding herdr claude   # 둘 다 생성물이 설정과 같은 디렉토리에 산다 — 폴딩하면 레포로 들어온다
+stow --no-folding herdr claude   # both keep generated data beside the config — folding drags it into the repo
 ```
 
-`tmux`/`sesh` 패키지는 herdr 이주 전 구성이다. 더 이상 stow 하지 않고 롤백용으로만 남겨 뒀다 —
-되돌리려면 `brew install tmux sesh && stow tmux sesh` 후 `.zshrc` 의 auto-attach 를 tmux 로 바꾼다.
+The `tmux` and `sesh` packages are the pre-herdr setup. They are no longer stowed and are kept only
+as a rollback path — to go back, run `brew install tmux sesh && stow tmux sesh` and switch the
+auto-attach in `.zshrc` back to tmux.
 
-stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
-개발 루프(프로젝트 진입 → 코드 → 커밋)는 [WORKFLOW.md](WORKFLOW.md) 참고.
+stow only creates symlinks. Extra per-program installs (plugins and so on) are covered in the
+sections below. The dev loop (enter project → code → commit) is in [WORKFLOW.md](WORKFLOW.md).
 
-**언어 런타임(Rust·Node·Deno·Bun·JVM·gcloud)은 여기에 포함되지 않는다.** 부트스트랩은
-셸·에디터·터미널까지만 세우고, 런타임은 프로젝트가 필요로 할 때 따로 설치한다
-([zsh 섹션](#zsh) 참고).
+**Language runtimes (Rust, Node, Deno, Bun, JVM, gcloud) are not part of this.** The bootstrap sets
+up shell, editor and terminal only; runtimes get installed when a project needs them
+(see [the zsh section](#zsh)).
 
 ---
 
 ## zsh
 
-[Oh My Zsh](https://ohmyz.sh/) + custom 플러그인을 사용한다. stow로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
+Uses [Oh My Zsh](https://ohmyz.sh/) plus custom plugins. stow does not install them, so clone them
+separately (the shell starts without errors if they are all missing, but loses completion and
+highlighting).
 
 ```bash
-# Oh My Zsh 본체
+# Oh My Zsh itself
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-# custom 플러그인 (ZSH_CUSTOM = ~/.oh-my-zsh/custom)
+# custom plugins (ZSH_CUSTOM = ~/.oh-my-zsh/custom)
 ZC=~/.oh-my-zsh/custom/plugins
 git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions      $ZC/zsh-autosuggestions
 git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting  $ZC/zsh-syntax-highlighting
@@ -73,199 +82,222 @@ git clone --depth 1 https://github.com/fdellwing/zsh-bat                  $ZC/zs
 git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fzf-tab
 ```
 
-- `git`·`fzf`는 OMZ 내장 플러그인이라 clone 불필요 (`fzf`는 brew 목록에 포함).
-- 로드 순서: `fzf-tab`이 `zsh-autosuggestions` 뒤, `zsh-syntax-highlighting` 앞이어야 한다 (`.zshrc` 주석 참고).
-- `ls`는 `eza`로 alias (brew 목록에 포함). 없으면 기본 `ls`로 fallback.
+- `git` and `fzf` ship with OMZ, so no clone is needed (`fzf` is in the brew list).
+- Load order: `fzf-tab` must come after `zsh-autosuggestions` and before `zsh-syntax-highlighting`
+  (see the comment in `.zshrc`).
+- `ls` is aliased to `eza` (in the brew list). Without it, it falls back to plain `ls`.
 
-### 계층 구조
+### Layering
 
-`.zshrc`(코어)는 셸 자체만 다루고, 있을 수도 없을 수도 있는 것은 바깥으로 뺐다.
+`.zshrc` (the core) handles only the shell itself; anything that may or may not exist was moved out.
 
-| 계층 | 위치 | 로드 조건 |
+| Layer | Location | Load condition |
 |------|------|-----------|
-| 코어 | `.zshrc` | 항상 |
-| 선택 (언어 런타임 등) | `.config/zsh/rc.d/*.zsh` | 파일이 있으면 번호 순으로. 각 파일이 자체 가드 |
-| 머신 전용 | `~/.zshrc.local` | 있으면. 레포에 들어가지 않는다 |
+| Core | `.zshrc` | Always |
+| Optional (language runtimes, ...) | `.config/zsh/rc.d/*.zsh` | If the file exists, in numeric order. Each file guards itself |
+| Machine-local | `~/.zshrc.local` | If it exists. Never enters the repo |
 
-`rc.d`의 각 조각은 대상이 설치돼 있을 때만 동작한다 — 예를 들어 `~/.sdkman`이 없으면
-`90-sdkman.zsh`는 통째로 no-op이다. **새 머신에서 런타임을 하나도 안 깔면 rc.d 전체가
-아무 일도 하지 않는다.** 런타임을 쓰게 되면 그때 설치하면 되고, `.zshrc`는 건드릴 필요 없다.
+Each `rc.d` fragment only does something when its target is installed — with no `~/.sdkman`, for
+instance, `90-sdkman.zsh` is a no-op end to end. **On a new machine with zero runtimes installed,
+all of rc.d does nothing.** Install a runtime when you start using it; `.zshrc` stays untouched.
 
-시작 시간 참고(측정값): 전체 약 190ms 중 oh-my-zsh 130ms, SDKMAN+gcloud 40ms,
-나머지 설정 전부 합쳐 10ms 남짓.
+Startup time, measured: ~190ms total — oh-my-zsh 130ms, SDKMAN + gcloud 40ms, and roughly 10ms for
+everything else combined.
 
 ## nvim
 
-[LazyVim](https://www.lazyvim.org/) 기반. 플러그인은 첫 실행 시 lazy.nvim이 `lazy-lock.json`대로 자동 설치한다.
+Based on [LazyVim](https://www.lazyvim.org/). On first launch, lazy.nvim installs the plugins
+according to `lazy-lock.json`.
 
 ```bash
-# ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
+# align ghq root with nvim lazy's dev.path (~/.ghq/github.com)
 git config --global ghq.root '~/.ghq'
 ```
 
-추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
+See `.config/nvim/REQUIREMENTS.md` for the remaining requirements.
 
 ## herdr
 
-[herdr](https://herdr.dev) — 에이전트 상태를 인지하는 터미널 멀티플렉서. tmux 를 대체한다.
-계층은 **workspace(= 프로젝트) > tab > pane**.
+[herdr](https://herdr.dev) — an agent-aware terminal multiplexer. It replaces tmux. The hierarchy is
+**workspace (= project) > tab > pane**.
 
-- prefix 는 `ctrl+a` (tmux 시절 유지). Ghostty 의 `cmd+t`/`ctrl+tab`/`ctrl+shift+tab` 이
-  `\x01` 시퀀스로 이 prefix 를 때린다.
+- The prefix is `ctrl+a` (carried over from tmux). Ghostty's `cmd+t` / `ctrl+tab` /
+  `ctrl+shift+tab` hit that prefix via `\x01` sequences.
 
-| 키 | 동작 |
+| Key | Action |
 |---|---|
-| `prefix+v` · `prefix+s`/`prefix+minus` | pane 분할. `prefix+s` 는 tmux 시절 유지 — settings 는 `prefix+comma` 로 밀려났다 |
-| `prefix+shift+v` · `prefix+alt+v` | pane 을 새 탭으로 떼어내기 · 다른 탭에 합치기 (tmux 의 break/join-pane) |
-| `prefix+hjkl` | pane 이동 (herdr 기본값이 이미 tmux 와 같다) |
-| `prefix+1..9` · `prefix+ctrl+h/l` · `ctrl+alt+h/l` | 탭. herdr 엔 tmux 의 `bind -r` 이 없어 연타용으로 prefix 없는 조합을 함께 둔다 |
-| `prefix+shift+1..9` · `prefix+shift+j/k` | workspace |
-| `prefix+alt+1..9` · `prefix+alt+j/k` | agent |
+| `prefix+v` · `prefix+s`/`prefix+minus` | Split pane. `prefix+s` is kept from tmux — settings got pushed to `prefix+comma` |
+| `prefix+shift+v` · `prefix+alt+v` | Break a pane into a new tab · join it into another tab (tmux's break/join-pane) |
+| `prefix+hjkl` | Move between panes (herdr's defaults already match tmux) |
+| `prefix+1..9` · `prefix+ctrl+h/l` · `ctrl+alt+h/l` | Tabs. herdr has no `bind -r`, so a prefix-less combo is kept alongside for repeat presses |
+| `prefix+shift+1..9` · `prefix+shift+j/k` | Workspaces |
+| `prefix+alt+1..9` · `prefix+alt+j/k` | Agents |
 
-수식어로 대상을 가른다 — **shift = workspace, alt = agent**. workspace/agent 전환은 herdr
-기본값이 전부 비어 있어 직접 채운 것이다. 이유는 [config.toml](herdr/.config/herdr/config.toml)
-주석에 있다.
+Modifiers pick the target — **shift = workspace, alt = agent**. herdr ships every workspace/agent
+switching binding empty, so these were filled in by hand. The reasoning is in the
+[config.toml](herdr/.config/herdr/config.toml) comments.
 
-- `prefix+S` — 프로젝트 진입점. zoxide 후보를 fzf 로 고르면 workspace 를 열거나 만든다.
-  중복 판정은 생성 시 새겨둔 metadata 토큰 `ws_root`(원본 절대경로)로 한다.
-  `alt+s`/`ctrl+alt+s` 로도 열린다. `switch_ascii_input_source_in_prefix` 는 prefix
-  모드 '안에서만' ASCII 로 전환하므로 prefix 를 안 거치는 `alt+s` 는 못 덮는다 —
-  한글 대응은 Hammerspoon 의 `forceEnglishKeys` 가 맡는다.
-- `prefix+alt+g` lazygit · `prefix+ctrl+c` Claude · `prefix+alt+t` 스크래치 셸 (전부 팝업)
-- `prefix+o` — 알림이 뜬 pane 으로 점프. **알림을 클릭하면 터미널 앱이 활성화될 뿐
-  해당 pane 으로 가지 않는다.**
-- 에이전트 상태(blocked/working/done/idle)를 사이드바에 띄우려면 훅 설치가 필요하다:
+- `prefix+S` — the project entry point. Pick a zoxide candidate in fzf and it opens or creates the
+  workspace. Duplicates are detected via the `ws_root` metadata token (the original absolute path)
+  stamped at creation. It also opens on `alt+s` / `ctrl+alt+s`.
+  `switch_ascii_input_source_in_prefix` only switches to ASCII *inside* prefix mode, so it cannot
+  cover `alt+s`, which never goes through the prefix — Hammerspoon's `forceEnglishKeys` handles the
+  Korean IME case instead.
+- `prefix+alt+g` lazygit · `prefix+ctrl+c` Claude · `prefix+alt+t` scratch shell (all popups)
+- `prefix+o` — jump to the pane that raised a notification. **Clicking the notification only
+  activates the terminal app; it does not take you to the pane.**
+- Surfacing agent state (blocked/working/done/idle) in the sidebar requires installing the hook:
 
 ```bash
 herdr integration install claude
-herdr config check                  # config.toml 문법 검사
-herdr server reload-config          # 실행 중인 서버에 config 재적용 (파일 감시 안 함)
+herdr config check                  # validate config.toml syntax
+herdr server reload-config          # re-apply config to the running server (it does not watch the file)
 ```
 
-brew 로 깔면 brew 가 버전을 관리하고, herdr.dev 의 standalone 설치본을 쓰면
-`herdr update` 가 스스로 갱신한다 (이 머신은 후자 — `~/.local/bin/herdr`).
+Installed via brew, brew manages the version; with the standalone installer from herdr.dev,
+`herdr update` updates itself (this machine uses the latter — `~/.local/bin/herdr`).
 
-세션 복원은 내장이다(tmux-resurrect/continuum 불필요). 서버가 재시작돼도 레이아웃을
-복구하고, `[session] resume_agents_on_restore` 로 에이전트 대화까지 되살린다.
+Session restore is built in (no tmux-resurrect/continuum). The layout survives a server restart, and
+`[session] resume_agents_on_restore` brings agent conversations back too.
 
-### pi 연동
+### pi integration
 
-[pi](https://pi.dev) 도 herdr 가 인지하는 에이전트다. 훅이 아니라 **pi 익스텐션**으로 붙는다.
+[pi](https://pi.dev) is another agent herdr recognizes. It attaches as a **pi extension** rather than
+a hook.
 
 ```bash
 herdr integration install pi        # ~/.pi/agent/extensions/herdr-agent-state.ts
-herdr --skill > ~/.pi/agent/skills/herdr/SKILL.md   # pi 가 herdr 를 조작할 수 있게
+herdr --skill > ~/.pi/agent/skills/herdr/SKILL.md   # lets pi drive herdr
 ```
 
-두 파일 다 생성물이라 레포에 넣지 않는다 — herdr 를 업데이트하면 다시 뽑아야 한다.
-`herdr integration status` 로 버전을 확인한다.
+Both files are generated, so neither enters the repo — regenerate them after a herdr update. Check
+versions with `herdr integration status`.
 
-스킬을 심으면 pane 안의 pi 가 herdr CLI 로 다른 pane 을 만들고 에이전트를 띄울 수 있다.
-스킬의 description 이 "사용자가 herdr 를 명시적으로 언급할 때만" 으로 제한돼 있어
-평소에는 끼어들지 않는다.
+With the skill installed, a pi instance inside a pane can create other panes and start agents through
+the herdr CLI. The skill's description limits it to "only when the user explicitly mentions herdr",
+so it stays out of the way otherwise.
 
-**확인된 것** (`herdr agent start smoke --kind pi` 로 실측):
+**Confirmed** (measured with `herdr agent start smoke --kind pi`):
 
-- `agent start --kind pi` 로 pane 에 pi 를 띄우면 herdr 가 `pi` 로 인식하고
-  **세션 JSONL 경로까지** 추적한다
-- `agent prompt --wait` 가 완료 시점에 반환한다 (타임아웃 아님)
-- `agent read --source visible` 로 화면 내용을 그대로 읽는다
+- Starting pi in a pane via `agent start --kind pi` gets it recognized as `pi`, and herdr tracks it
+  **down to the session JSONL path**
+- `agent prompt --wait` returns at completion (not on timeout)
+- `agent read --source visible` reads the screen contents verbatim
 
-**안 되는 것**: `blocked` 상태는 pi 에서 뜨지 않는다. pi 는 설계상 권한 팝업이
-없어서 herdr 가 잡을 승인 UI 자체가 없다. 질문을 시켜도 텍스트로 출력하고 `idle`
-로 간다. 승인 대기를 감지하려면 질문 UI 를 제공하는 익스텐션이 따로 필요하다.
+**What does not work**: the `blocked` state never appears for pi. By design pi has no permission
+popup, so there is no approval UI for herdr to detect. Even when asked a question it prints text and
+goes `idle`. Detecting an approval wait would require a separate extension that provides a question
+UI.
 
 ## ghostty
 
-터미널 에뮬레이터. macOS 습관을 herdr 로 넘기는 키 바인딩이 여기 있다 —
-`cmd+t` → `\x01c`(새 탭), `ctrl+tab` → `\x01n`, `cmd+w` → `\x01D` 처럼 herdr prefix
-시퀀스로 번역한다. `shift+enter` 는 `\x1b\x0d` 로 보내 에이전트에서 줄바꿈이 먹게 한다.
+The terminal emulator. The key bindings that forward macOS habits into herdr live here — `cmd+t` →
+`\x01c` (new tab), `ctrl+tab` → `\x01n`, `cmd+w` → `\x01D`, all translated into herdr prefix
+sequences. `shift+enter` is sent as `\x1b\x0d` so newlines work inside agents.
 
-**폰트**: `MuxJK` — 별도 설치가 필요하다.
+**Font**: `MuxJK` — must be installed separately.
 
 ## git
 
-`.gitconfig`(전역 설정)와 `.config/git/ignore`(전역 gitignore). 별도 의존성 없음.
+`.gitconfig` (global settings) and `.config/git/ignore` (global gitignore). No extra dependencies.
 
-## 입력 소스 전환 (karabiner + hammerspoon)
+## Input source switching (karabiner + hammerspoon)
 
-한/영/일 전환은 **두 프로그램이 나눠 맡는다.** Karabiner가 물리 키를 신호로 바꾸고,
-Hammerspoon이 그 신호를 입력 소스 전환으로 해석한다.
+Korean/English/Japanese switching is **split across two programs.** Karabiner turns a physical key
+into a signal, and Hammerspoon interprets that signal as an input source switch.
 
-| 키 | Karabiner 매핑 | Hammerspoon 동작 |
+| Key | Karabiner mapping | Hammerspoon action |
 |----|----------------|------------------|
-| `caps lock` | → `f19` | 한국어 ↔ 영어 |
-| `right option` | → `f17` | 한국어 ↔ 일본어 |
-| `shift+cmd+space` | — | 한국어 ↔ 일본어 |
+| `caps lock` | → `f19` | Korean ↔ English |
+| `right option` | → `f17` | Korean ↔ Japanese |
+| `shift+cmd+space` | — | Korean ↔ Japanese |
 
-`caps_lock → f19` 매핑은 프로파일 최상위와 **`devices[]` 안 개별 키보드 항목 양쪽에**
-들어 있다. 하나만 지우면 다른 쪽이 남아서 동작한다 — 바꿀 때 둘 다 확인할 것.
+The `caps_lock → f19` mapping exists **both at the profile top level and inside the per-keyboard
+entries under `devices[]`**. Deleting one leaves the other working — check both when changing it.
 
-### Karabiner 단독 구성을 시도했다가 되돌린 기록
+### Record of a Karabiner-only setup that was reverted
 
-Hammerspoon을 없애고 Karabiner의 `select_input_source`로 직접 전환하는 구성을
-시험했으나 정상 동작하지 않아 되돌렸다. 이 API는 macOS의 deprecated Carbon API를
-쓰고, 한국어·일본어처럼 `input_mode_id`를 가진 CJK 입력 소스에서 불안정하다는
-보고가 공식 문서와 이슈 트래커에 있다. 같은 시도를 반복하지 말 것.
+Dropping Hammerspoon and switching directly with Karabiner's `select_input_source` was tried and did
+not work reliably, so it was reverted. That API uses a deprecated macOS Carbon API, and both the
+official docs and the issue tracker report it being unstable for CJK input sources that carry an
+`input_mode_id`, such as Korean and Japanese. Do not repeat the attempt.
 
-- [to.select_input_source](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/select-input-source/) — CJK 실패 가능성 명시
-- [Issue #1602](https://github.com/pqrs-org/Karabiner-Elements/issues/1602) — CJKV 전환 이슈
+- [to.select_input_source](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/select-input-source/) — explicitly notes possible CJK failure
+- [Issue #1602](https://github.com/pqrs-org/Karabiner-Elements/issues/1602) — CJKV switching issues
 
-### 알아둘 것
+### Worth knowing
 
-- Karabiner는 입력 모니터링, Hammerspoon은 손쉬운 사용 권한이 필요하다(둘 다 수동).
-- `devices[]`에 `ignore: true`로 제외된 키보드가 있다(vendor 1133 / product 49312).
-  그 키보드에서는 어떤 Karabiner 규칙도 적용되지 않는다.
+- Karabiner needs Input Monitoring, Hammerspoon needs Accessibility permission (both granted
+  manually).
+- One keyboard is excluded in `devices[]` with `ignore: true` (vendor 1133 / product 49312). No
+  Karabiner rule applies on that keyboard.
 
 ## pi
 
-[pi](https://pi.dev) — 최소주의 코딩 에이전트. 설정은 `~/.pi/agent/settings.json`.
-**stow 하지 않는다** — 같은 디렉토리에 자격증명(`auth.json`)과 세션이 있다.
+[pi](https://pi.dev) — a minimalist coding agent. Its config is `~/.pi/agent/settings.json`.
+**Not stowed** — credentials (`auth.json`) and sessions live in the same directory.
 
 ```json
 { "defaultTools": ["read","bash","edit","write","grep","find","ls"] }
 ```
 
-`defaultTools` 는 꼭 넣는다. pi 의 기본 활성 툴은 `read bash edit write` **네 개뿐**이고
-`grep`/`find`/`ls` 는 빌트인이지만 꺼져 있다. 안 켜면 모델이 `bash` 로 우회하며
-토큰을 더 쓴다. (`pi -p "list your tools"` 로 확인 가능)
+Always set `defaultTools`. pi enables **only four** tools by default — `read bash edit write` — and
+`grep`/`find`/`ls` are built in but off. Left off, the model works around them through `bash` and
+burns more tokens. (Verify with `pi -p "list your tools"`.)
 
-주의할 것 둘:
+Two things to watch:
 
-- **`defaultProvider`/`defaultModel` 이 미인증이면 조용히 폴백한다.** 설정에 적어둔
-  모델로 도는지 믿지 말고 `pi auth check --provider <이름>` 으로 확인한다.
-- pi 패키지는 `AGENTS.md` 를 실을 수 없다. 패키지가 담는 건 `extensions/` `skills/`
-  `prompts/` `themes/` 넷뿐이라, 전역 규칙은 `~/.pi/agent/AGENTS.md` 에 직접 둔다.
+- **An unauthenticated `defaultProvider`/`defaultModel` falls back silently.** Do not assume it is
+  running the model in the config; check with `pi auth check --provider <name>`.
+- The pi package cannot carry `AGENTS.md`. A package holds only four things — `extensions/`,
+  `skills/`, `prompts/`, `themes/` — so global rules go directly in `~/.pi/agent/AGENTS.md`.
 
-herdr 와 붙이는 방법은 [herdr 절의 pi 연동](#pi-연동) 참고.
+For wiring it to herdr, see [pi integration](#pi-integration) in the herdr section.
 
 ## claude
 
-지침은 두 스코프로 나뉜다. **user** 는 `claude/.claude/CLAUDE.md` → stow → `~/.claude/CLAUDE.md`
-(모든 프로젝트에 적용), **project** 는 레포 루트의 [CLAUDE.md](CLAUDE.md) (이 레포에서만).
-project 가 뒤에 로드되므로 충돌하면 project 가 이긴다.
+Instructions split across two scopes. **user** is `claude/.claude/CLAUDE.md` → stow →
+`~/.claude/CLAUDE.md` (applies to every project); **project** is [CLAUDE.md](CLAUDE.md) at the repo
+root (this repo only). Project loads later, so it wins any conflict.
 
-`~/.claude` 는 **저작물과 생성물이 한 디렉토리에 섞여 있다** — 500M 넘는 대부분이 생성물이라
-무엇을 빼느냐가 핵심이다.
+`~/.claude` **mixes authored files and generated ones in a single directory** — over 500M of it is
+generated, so what to exclude is the hard part.
 
-| 넣는 것 | 빼는 것 |
+| Included | Excluded |
 |---|---|
-| `CLAUDE.md`, `settings.json` | `~/.claude.json` — OAuth 토큰 (디렉토리 **밖**) |
-| `skills/clear-draft` | `projects/` — 대화 transcript. 읽은 파일·명령 출력이 평문으로 남는다 |
-| `statusline-command.sh`, `subagent-statusline.sh` | `plugins/` — `settings.json` 의 목록으로 재설치된다 |
-| | `hooks/herdr-agent-state.sh` — herdr 생성물 (pi 확장과 같은 이유) |
-| | `history.jsonl`, `file-history/`, `shell-snapshots/` 등 캐시 |
+| `CLAUDE.md`, `settings.json` | `~/.claude.json` — OAuth token (**outside** the directory) |
+| `skills/clear-draft` | `projects/` — conversation transcripts. File contents and command output are stored in plaintext |
+| `statusline-command.sh`, `subagent-statusline.sh` | `plugins/` — reinstalled from the list in `settings.json` |
+| | `hooks/herdr-agent-state.sh` — generated by herdr (same reason as the pi extension) |
+| | `history.jsonl`, `file-history/`, `shell-snapshots/` and other caches |
 
 ```bash
-stow --no-folding claude          # 폴딩하면 projects/ 391M 가 레포로 들어온다
-herdr integration install claude  # settings.json 의 SessionStart 훅이 이걸 참조한다
+stow --no-folding claude          # folding drags 391M of projects/ into the repo
+herdr integration install claude  # the SessionStart hook in settings.json points at this
 ```
 
-**순서 주의** — 훅 스크립트는 herdr 가 생성하므로 레포에 없다. 먼저 깔지 않으면 훅이 없는
-경로를 가리키지만, Claude Code 는 경고만 내고 정상적으로 뜬다.
+**Order matters** — the hook script is generated by herdr, so it is not in the repo. Install it first
+or the hook points at a missing path; Claude Code only warns and starts normally either way.
 
-`~/.claude/skills/` 의 일부는 `~/.agents/skills/` 를 가리키는 심볼릭 링크다 — 별도 도구가
-관리하므로 이 패키지는 건드리지 않는다.
+Some entries under `~/.claude/skills/` are symlinks into `~/.agents/skills/` — a separate tool
+manages those, and this package leaves them alone.
+
+## vimium
+
+Link hint styling for [Vimium](https://github.com/philc/vimium) on Brave. **Not a stow target** —
+Vimium settings live in the browser profile's `chrome.storage.sync` (LevelDB) rather than in a file,
+so there is nothing to symlink.
+
+```
+Vimium options page → paste vimium/link-hints.css into "CSS for link hints" → Save
+```
+
+Because it is a manual copy-paste, it **flows both ways**. Edit it in the options page and you must
+paste it back into the repo file, or the repo silently goes stale.
+
+Key mappings, search engines and exclusion rules are not kept here. The `Download backup` button at
+the bottom of the options page emits only the non-default values as key-sorted JSON, so all of it
+could be version-controlled — but CSS is the only part being touched, so CSS is all that is kept.
 
 ---
 
@@ -274,9 +306,10 @@ herdr integration install claude  # settings.json 의 SessionStart 훅이 이걸
 ```bash
 cd ~/dotfiles
 stow -R <package>
-stow -R --no-folding herdr claude   # 이 둘은 폴딩 금지 — 옵션을 빠뜨리면 생성물이 딸려온다
+stow -R --no-folding herdr claude   # never fold these two — omitting the flag drags generated data in
 ```
 
-`herdr` 와 `claude` 는 대상 디렉토리가 실제 디렉토리라 **파일별로** 링크가 걸린다.
-그래서 레포에 파일을 새로 추가하면 링크가 자동으로 생기지 않는다 — `stow -R` 을 다시 돌려야
-한다. 안 돌리면 그 파일만 조용히 없는 상태가 된다 (팝업이 `exit 127` 로 즉사하는 식).
+For `herdr` and `claude` the target is a real directory, so links are created **per file**. That
+means adding a new file to the repo does not create a link automatically — `stow -R` has to be run
+again. Skip it and only that file is silently missing (which looks like a popup dying instantly with
+`exit 127`).

@@ -1,46 +1,46 @@
-# 산출물별 뼈대
+# Skeletons per artifact
 
-모든 형식의 공통 규칙: **첫 줄에 결론, 마지막에 요청(주체+기한).**
+Rule shared by every format: **conclusion on the first line, the ask (owner + deadline) on the last.**
 
-## 기본 분량
+## Default length
 
-사용자가 길이를 지정하지 않았을 때 쓰는 기본값. 3단계에서 이 값을 선언하고, 5단계에서 지켰는지 점검한다.
+Used when the user did not specify a length. Declare this value in step 3 and check it in step 5.
 
-| 산출물 | 기본 분량 |
+| Artifact | Default length |
 |---|---|
-| 채팅 / Slack | 본문 5줄 + 요청 1줄 |
-| GitHub Issue | 30줄 |
-| PR 설명 | 20줄 |
-| 이메일 | 12줄 |
-| 문서 섹션 | 25줄 |
-| 논문 초록 | 250단어 |
+| Chat / Slack | 5 lines of body + 1 line of ask |
+| GitHub issue | 30 lines |
+| PR description | 20 lines |
+| Email | 12 lines |
+| Doc section | 25 lines |
+| Paper abstract | 250 words |
 
-- 코드 블록·로그·표는 줄 수에 넣지 않는다. 산문만 센다.
-- 넘칠 것 같으면 분량을 늘리지 말고 **근거와 범위 밖부터 줄인다.** 결론·요청은 마지막까지 지킨다.
-- 사용자가 길이를 말했으면 그 값이 이 표를 이긴다.
+- Code blocks, logs and tables do not count toward the line budget. Count prose only.
+- If it is about to overflow, do not raise the budget — **cut evidence and out-of-scope material first.** Protect the conclusion and the ask to the last.
+- A length the user stated beats this table.
 
 ---
 
-## 1. 채팅 / Slack 메시지
+## 1. Chat / Slack message
 
-가장 잘 실패하는 형식. 스레드에서 훑고 지나가는 사람이 독자다.
+The format that fails most often. The reader is someone skimming past in a thread.
 
 ```
-[한 줄 결론 — 무슨 일이고 뭐가 필요한지]
+[One-line conclusion — what happened and what is needed]
 
-- 상황: (사실 1~2줄)
-- 영향: (누가 얼마나 곤란한지, 가능하면 수치)
-- 필요: @누구 무엇을 언제까지
+- 상황: (facts, 1–2 lines)
+- 영향: (who is blocked and how badly, with numbers if possible)
+- 필요: @who, what, by when
 
-(자세한 건 스레드/링크)
+(details in thread / link)
 ```
 
-규칙
+Rules
 
-- **1줄 요약을 맨 위에.** 읽고 스크롤을 멈출지 판단할 재료를 먼저 준다.
-- 상세는 스레드로 내린다. 본문에 로그를 통째로 붙이지 않는다.
-- 질문형("혹시 이거 어떻게 하는 게 좋을까요?")보다 **제안형 + 반대 요청**("A로 가겠습니다. 이견 있으면 오늘 중 알려주세요")이 훨씬 빨리 끝난다.
-- 이모지·인사말로 시작하지 않는다. 결론으로 시작한다.
+- **One-line summary at the very top.** Give the reader what they need to decide whether to stop scrolling.
+- Push details into the thread. Do not paste a whole log into the message body.
+- A proposal plus an objection window ("A로 가겠습니다. 이견 있으면 오늘 중 알려주세요") closes far faster than an open question ("혹시 이거 어떻게 하는 게 좋을까요?").
+- Do not open with an emoji or a greeting. Open with the conclusion.
 
 Before / After
 
@@ -53,15 +53,15 @@ Before / After
 
 ---
 
-## 2. GitHub Issue
+## 2. GitHub issue
 
-독자는 **미래의 누군가**다. 지금 맥락을 모르는 사람이 이것만 보고 착수할 수 있어야 한다.
+The reader is **someone in the future**. A person with none of today's context must be able to pick it up from this alone.
 
 ```
-제목: [영역] 관찰된 증상 (원인 아님)
+Title: [area] observed symptom (not the cause)
 
 ## 요약
-한 문단. 무엇이 어떻게 잘못됐고 왜 중요한가.
+One paragraph. What went wrong, how, and why it matters.
 
 ## 재현 절차
 1.
@@ -73,104 +73,104 @@ Before / After
 - 실제:
 
 ## 환경
-버전 / OS / 브랜치·커밋
+Version / OS / branch or commit
 
 ## 근거
-로그, 스택트레이스, 실패 테스트, 스크린샷
+Logs, stack traces, failing tests, screenshots
 
 ## 범위 밖
-(이 이슈에서 다루지 않을 것 — 논의가 새는 것을 막는다)
+(What this issue will not cover — keeps the discussion from leaking)
 ```
 
-규칙
+Rules
 
-- **제목은 증상으로 쓴다.** "인증 리팩터링 필요" ✗ / "토큰 만료 후 재로그인하면 401이 반복됨" ✓. 원인은 아직 가설이다.
-- 재현 절차가 없으면 이슈가 아니라 메모다. 없으면 "재현 미확보"라고 쓴다.
-- 추측과 관찰을 섞지 않는다. 추측은 `추정 원인:`으로 분리한다.
-- 로그는 접기(`<details>`)로 넣는다.
+- **Write the title as a symptom.** "인증 리팩터링 필요" ✗ / "토큰 만료 후 재로그인하면 401이 반복됨" ✓. The cause is still a hypothesis.
+- Without repro steps it is a note, not an issue. If there are none, say "재현 미확보".
+- Do not mix speculation with observation. Separate speculation under `추정 원인:`.
+- Put logs inside a `<details>` fold.
 
 ---
 
-## 3. Pull Request 설명
+## 3. Pull request description
 
-독자는 **리뷰어**다. 리뷰어가 알고 싶은 건 "무엇을 바꿨나"가 아니라 **"왜 바꿨고, 어디를 집중해서 봐야 하나"**다. diff는 이미 보인다.
+The reader is **the reviewer**. What they want is not "what changed" but **"why it changed, and where should I look hardest"**. The diff is already visible.
 
 ```
 ## 왜
-해결하는 문제. 관련 이슈 링크. (Fixes #123)
+The problem being solved. Link the issue. (Fixes #123)
 
 ## 무엇을
-변경의 핵심 1~3줄. 파일 나열 금지.
+The core of the change in 1–3 lines. No file listings.
 
 ## 어떻게 확인했나
-- [ ] 단위 테스트 추가/수정
-- [ ] 수동 확인 절차:
-- 스크린샷/before-after (UI라면)
+- [ ] Unit tests added/updated
+- [ ] Manual verification steps:
+- Screenshots / before-after (if UI)
 
 ## 리뷰 포인트
-집중해서 봐줬으면 하는 부분과 그 이유. 대안을 버린 이유.
+Where you want focused attention and why. Which alternatives were dropped and why.
 
 ## 위험 / 롤백
-영향 범위, 마이그레이션 유무, 되돌리는 법.
+Blast radius, whether there is a migration, how to revert.
 ```
 
-규칙
+Rules
 
-- "왜"가 없는 PR은 리뷰가 느려진다. 이슈 링크로 대체하지 말고 한 줄이라도 적는다.
-- **커밋 목록을 복붙하지 않는다.**
-- 스스로 아는 약점을 먼저 밝힌다("이 부분은 임시 방편입니다, 후속 #124"). 리뷰어가 찾아내게 두면 신뢰가 깎인다.
-- 크면 쪼갠다. 설명이 길어지는 건 대개 PR이 큰 것이다.
+- A PR with no "why" gets reviewed slowly. Do not substitute an issue link for it; write at least one line.
+- **Never paste the commit list.**
+- Disclose the weaknesses you already know about ("이 부분은 임시 방편입니다, 후속 #124"). Letting the reviewer discover them costs trust.
+- If it is big, split it. A description that keeps growing usually means the PR is too large.
 
 ---
 
-## 4. 이메일 / 대외 커뮤니케이션
+## 4. Email / external communication
 
 ```
-제목: [행동] 무엇을 언제까지 — 구체적으로
+Subject: [action] what, by when — be specific
 
-첫 문단: 결론 + 요청 (2~3문장)
-가운데: 필요한 근거만
-마지막: 다음 액션과 기한, 회신처
+First paragraph: conclusion + ask (2–3 sentences)
+Middle: only the evidence that is needed
+Last: next action, deadline, where to reply
 ```
 
-- 제목에 "안내", "공유", "문의" 단독 금지. "9/15 점검으로 03–05시 API 중단"처럼 내용을 넣는다.
-- 사과·인사는 최소 1줄.
-- 상대가 결정해야 하면 **선택지를 정리해서** 준다. 열린 질문을 던지면 답장이 늦다.
+- No bare "안내", "공유", "문의" in the subject. Put the content in: "9/15 점검으로 03–05시 API 중단".
+- Keep apologies and pleasantries to one line at most.
+- If the other side has to decide, **hand them organized options.** An open question gets a slow reply.
 
 ---
 
-## 5. 설계 문서 / RFC
+## 5. Design doc / RFC
 
 ```
-1. 문제 (Why now)
-2. 목표 / 비목표
-3. 제안
-4. 검토한 대안과 버린 이유   ← 가장 중요
-5. 위험과 미해결 질문
-6. 롤아웃 계획
+1. Problem (why now)
+2. Goals / non-goals
+3. Proposal
+4. Alternatives considered and why they were dropped   ← the most important one
+5. Risks and open questions
+6. Rollout plan
 ```
 
-- **비목표(Non-goals)** 를 꼭 쓴다. 논의가 새는 것을 가장 잘 막는다.
-- "검토한 대안"이 비어 있으면 독자는 검토가 없었다고 읽는다.
+- Always write the **non-goals.** Nothing prevents scope leak better.
+- An empty "alternatives considered" reads to the audience as no consideration at all.
 
 ---
 
-## 6. 논문 / 학술 원고
+## 6. Paper / academic manuscript
 
-Mensh & Kording 기준.
+Following Mensh & Kording.
 
-- **초록**: Context → Content → Conclusion을 모두 담는다. 대부분의 독자는 초록만 읽는다.
-- **서론**: 분야 → 하위 분야 → 이 연구의 빈틈, 순으로 좁힌다. 문헌 나열이 아니라 **빈틈 논증**이다. 마지막 문단에 본 논문의 기여.
-- **결과**: 각 문단이 "질문 → 데이터 → 답" 한 사이클.
-- **고찰**: 빈틈을 어떻게 메웠나 → 한계 → 분야에 주는 의미.
-- 제목·초록·그림·개요에 시간을 몰아서 쓴다. 읽히는 양이 압도적으로 많다.
-- 초록/서론은 **인접 분야 독자**를 기준으로 쓴다 (Nature: "accessible to readers in other disciplines").
+- **Abstract**: carry Context → Content → Conclusion in full. Most readers read only this.
+- **Introduction**: narrow from field → subfield → the gap this work fills. It is a **gap argument**, not a literature list. Put this paper's contribution in the last paragraph.
+- **Results**: each paragraph is one "question → data → answer" cycle.
+- **Discussion**: how the gap was filled → limitations → what it means for the field.
+- Spend your time on the title, abstract, figures and outline. They are read overwhelmingly more than anything else.
+- Write the abstract and introduction for a **reader in an adjacent field** (Nature: "accessible to readers in other disciplines").
 
 ---
 
-## 7. 코드 리뷰 코멘트
+## 7. Code review comments
 
-- 사람이 아니라 코드를 지목한다: "왜 이렇게 하셨어요?" ✗ / "이 경로에서 `nil`이면 패닉이 납니다" ✓
-- **차단/제안/취향**을 구분해 표시한다: `blocking:` / `suggestion:` / `nit:`
-- 문제만 지적하지 말고 방향을 준다. 방향이 없으면 질문임을 밝힌다.
-- 잘된 부분도 한 줄 남긴다.
+- Point at the code, not the person: "왜 이렇게 하셨어요?" ✗ / "이 경로에서 `nil`이면 패닉이 납니다" ✓
+- Mark **blocking / suggestion / taste** distinctly: `blocking:` / `suggestion:` / `nit:`
+- Do not just name the problem, give a direction. If you have no direction, say it is a question.
+- Leave one line on what was done well, too.

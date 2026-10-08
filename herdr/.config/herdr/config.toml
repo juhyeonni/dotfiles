@@ -48,8 +48,8 @@ type = "popup"
 command = "~/.config/herdr/scripts/workspace-jump.sh"
 description = "workspace"
 width = "60%"
-# ~17 rows on a 47-row pane. The tallest mode, [all] (11 list rows + 2 header + counter +
-# prompt), fits exactly. Any taller and the top goes blank, since fzf aligns to the bottom.
+# ~17 rows on a 47-row pane: prompt, ~15 entries and the footer. The list grows down from the
+# prompt (reverse layout), so the height only decides how many entries show before scrolling.
 height = "40%"
 
 # lazygit/scratch use alt combos because prefix+g is goto and prefix+shift+g is new_worktree.

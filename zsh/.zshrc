@@ -126,3 +126,11 @@ if command -v herdr &> /dev/null && [ -z "$HERDR_ENV" ] && [ -z "$GHOSTTY_QUICK_
   fi
 fi
 
+# Outside herdr nothing consumes the prefix, so ghostty's cmd+w (\x01D) would just type D.
+# Make it close the shell instead, like a plain cmd+w.
+if [ -z "$HERDR_ENV" ]; then
+  _close_shell() { exit }
+  zle -N _close_shell
+  bindkey '^AD' _close_shell
+fi
+

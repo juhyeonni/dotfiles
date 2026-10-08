@@ -75,6 +75,9 @@ keybind = cmd+t=text:\x01c
 keybind = cmd+w=text:\x01D
 keybind = ctrl+tab=text:\x01n
 keybind = ctrl+shift+tab=text:\x01p
+# Ghostty's default cmd+left is a bare \x01, which herdr eats as the prefix. Sending it
+# twice is prefix + ctrl+a ("send prefix"), so the pane still gets beginning-of-line.
+keybind = cmd+left=text:\x01\x01
 
 # Shift+Enter → newline (sends Alt+Enter sequence)
 keybind = shift+enter=text:\x1b\x0d

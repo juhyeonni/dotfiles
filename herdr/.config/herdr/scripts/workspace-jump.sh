@@ -1,25 +1,67 @@
 #!/usr/bin/env bash
 # Project entry point (replaces sesh): focus the workspace for the picked path, create it if absent.
-# ctrl-g / ctrl-n also run ghq clone/create.
+# One list, no modes: open workspaces (●) first, then recently opened, then zoxide and ghq.
+# When the query matches nothing, the list offers `+ clone <query>` and `+ create <query>` instead.
 #
 # Duplicates are judged by path, not label (~/work/api and ~/oss/api share a basename).
 # A workspace object has no cwd, so the path is stamped into the ws_root metadata token at
 # creation time and looked up from there. A pane's cwd is not used because cd in the shell moves it.
-# Limitation: workspaces created outside this picker carry no token, so a path can be duplicated.
-# No `set -e` here. In `git_repos | head`, head closing the pipe kills the script with SIGPIPE (141).
-# Failures are handled explicitly below instead.
+# Limitation: workspaces created outside this picker carry no token, so a path can be duplicated
+# and they are not marked as open.
+# No `set -e` here: failures are handled explicitly below instead.
 set -uo pipefail
+
+SELF="$(printf %q "$0")"
+LEGEND='● open   enter go'
+
+# fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
+# `list` is the full list, `plus` exists while the clone/create rows are shown.
+# The rows replace the list with search disabled, so any query shows them; the next keystroke
+# restores the list and lets the search decide again.
+on_result() {
+  if [[ -e $WSJ_STATE/plus ]]; then
+    echo "change-border-label: $LEGEND   0 projects "
+    return
+  fi
+  if ((FZF_MATCH_COUNT == 0)) && [[ -n $FZF_QUERY ]]; then
+    touch "$WSJ_STATE/plus"
+    echo "disable-search+reload:$SELF --plus"
+    return
+  fi
+  echo "change-border-label: $LEGEND   $FZF_MATCH_COUNT projects "
+}
+
+on_change() {
+  [[ -e $WSJ_STATE/plus ]] || return 0
+  rm -f "$WSJ_STATE/plus"
+  echo "enable-search+reload:cat $(printf %q "$WSJ_STATE/list")"
+}
+
+plus_rows() {
+  local q
+  read -r q <<<"$FZF_QUERY"
+  printf '+ clone %s\tget\t%s\n+ create %s\tcreate\t%s\n' "$q" "$q" "$q" "$q"
+}
+
+case "${1:-}" in
+--on-result) on_result; exit ;;
+--on-change) on_change; exit ;;
+--plus) plus_rows; exit ;;
+esac
 
 for cmd in zoxide fzf jq ghq herdr; do
   command -v "$cmd" >/dev/null || { echo "required command not found: $cmd" >&2; exit 1; }
 done
 
 GHQ_ROOT="$(ghq root)"
-TOP=8
 # zoxide exposes no last-access time, and its score is rank (cumulative hits) x a recency multiplier,
 # which cancels out within a session and degrades to frequency order. Track "recently opened" here.
 MRU_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-mru"
 MRU_MAX=50
+
+export WSJ_STATE
+WSJ_STATE="$(mktemp -d)" || exit 1
+trap 'rm -rf "$WSJ_STATE"' EXIT
 
 # The popup closes the instant the command exits — give the user time to read the error.
 fail() {
@@ -27,24 +69,34 @@ fail() {
   read -rsn1
 }
 
-# "<label>\t<absolute path>". ghq entries shrink to owner/repo — ~/.ghq/github.com/ is noise
-# repeated on every row; dropping it shortens the line and lets the shape do the distinguishing.
+# "<marker> <label> <dim path>\t<kind>\t<absolute path>". ghq entries shrink to owner/repo —
+# ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
 render() {
-  while IFS= read -r p; do
-    [[ -n $p ]] || continue
-    case "$p" in
-    "$GHQ_ROOT"/*)
-      rel="${p#"$GHQ_ROOT"/}"
-      printf ' %s\t%s\n' "${rel#*/}" "$p"
-      ;;
-    "$HOME"/*) printf ' ~%s\t%s\n' "${p#"$HOME"}" "$p" ;;
-    *) printf ' %s\t%s\n' "$p" "$p" ;;
-    esac
-  done
+  local mark="$1" p="$2" shown
+  case "$p" in
+  "$GHQ_ROOT"/*) shown="${p#"$GHQ_ROOT"/}"; shown="${shown#*/}" ;;
+  "$HOME") shown='~' ;;
+  "$HOME"/*) shown="~${p#"$HOME"}" ;;
+  *) shown="$p" ;;
+  esac
+  printf '%s %-20s \e[2m%s\e[0m\topen\t%s\n' "$mark" "${p##*/}" "$shown" "$p"
 }
 
-git_repos() {
-  zoxide query -l | while IFS= read -r d; do [[ -d $d/.git ]] && printf '%s\n' "$d"; done
+# The current workspace is dropped — no point jumping to where you already are, and dropping it
+# makes the top entry "the last place you were", which behaves like alt-tab.
+build_list() {
+  local ws cur open
+  ws="$(herdr workspace list |
+    jq -r '.result.workspaces[]? | select(.tokens.ws_root) | "\(.focused)\t\(.tokens.ws_root)"')"
+  cur="$(awk -F'\t' '$1 == "true" { print $2 }' <<<"$ws")"
+  open="$(awk -F'\t' '$1 == "false" { print $2 }' <<<"$ws")"
+  {
+    [[ -n $open ]] && sed 's/^/●\t/' <<<"$open"
+    { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
+  } | awk -F'\t' -v cur="$cur" '$2 != "" && $2 != cur && !seen[$2]++' |
+    while IFS=$'\t' read -r mark p; do
+      [[ -d $p ]] && render "$mark" "$p"
+    done
 }
 
 mru_add() {
@@ -58,30 +110,6 @@ mru_add() {
     [[ -f $MRU_FILE ]] && { grep -vxF "$1" "$MRU_FILE" || true; }
     :
   } | head -n "$MRU_MAX" >"$tmp" && mv "$tmp" "$MRU_FILE"
-}
-
-# The current workspace is dropped from the default list — no point jumping to where you already
-# are, and dropping it makes the top entry "the last place you were", which behaves like alt-tab.
-current_ws_root() {
-  herdr workspace list |
-    jq -r '.result.workspaces[]? | select(.focused == true) | .tokens.ws_root // empty' | head -n1
-}
-
-# MRU first, then zoxide order to fill the rest (on a new machine the MRU is empty).
-list_recent() {
-  local cur; cur="$(current_ws_root)"
-  { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; git_repos; } |
-    awk 'NF && !seen[$0]++' |
-    while IFS= read -r d; do
-      [[ -d $d/.git && $d != "$cur" ]] && printf '%s\n' "$d"
-    done | head -n "$TOP"
-}
-
-# ghq entries ordered by zoxide rank. Repos zoxide has never seen are pushed to the back.
-list_ghq() {
-  awk 'NR == FNR { idx[$0] = FNR; next }
-       { printf "%d\t%s\n", ($0 in idx ? idx[$0] : 999999999), $0 }' \
-    <(zoxide query -l) <(ghq list -p) | sort -n -k1,1 | cut -f2
 }
 
 open_workspace() {
@@ -126,37 +154,22 @@ ghq_run_and_open() {
   open_workspace "$new"
 }
 
-mode=default
 while true; do
-  # Two fixed rows. Row 1 is the list you are looking at and the keys that change it; row 2 is the
-  # keys that act on **the typed string**, not on the list — splitting the header makes that visible.
-  hdr2='typed name → ctrl-g clone · ctrl-n create'
-  case "$mode" in
-  ghq) src="$(list_ghq | render)"; hdr1='[ghq] enter open · ctrl-t all' ;;
-  all) src="$(git_repos | render)"; hdr1='[all] enter open · ctrl-r ghq' ;;
-  *) src="$(list_recent | render)"
-     hdr1='[recent] enter open · ctrl-r ghq · ctrl-t all' ;;
+  rm -f "$WSJ_STATE/plus"
+  build_list >"$WSJ_STATE/list"
+
+  sel="$(fzf <"$WSJ_STATE/list" \
+    --delimiter='\t' --with-nth=1 --nth=1 --ansi \
+    --layout=reverse --info=hidden --prompt='workspace > ' \
+    --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
+    --height=100% \
+    --bind "result:transform:$SELF --on-result" \
+    --bind "change:transform:$SELF --on-change")"
+
+  [[ -n $sel ]] || exit 0 # ESC
+  IFS=$'\t' read -r _ kind arg <<<"$sel"
+  case "$kind" in
+  open) open_workspace "$arg" && break ;;
+  *) ghq_run_and_open "$kind" "$arg" && break ;;
   esac
-  hdr="$hdr1"$'\n'"$hdr2"
-
-  out="$(printf '%s\n' "$src" | fzf \
-    --print-query --expect=ctrl-g,ctrl-n,ctrl-r,ctrl-t \
-    --delimiter='\t' --with-nth=1 --nth=1 \
-    --header="$hdr" --prompt='workspace > ' \
-    --no-border --ansi --height=100%)"
-
-  query="$(sed -n 1p <<<"$out")"
-  key="$(sed -n 2p <<<"$out")"
-  sel="$(sed -n 3p <<<"$out" | cut -f2)"
-
-  case "$key" in
-  ctrl-r) mode=ghq; continue ;;
-  ctrl-t) mode=all; continue ;;
-  ctrl-g) [[ -n $query ]] || continue; ghq_run_and_open get "$query" && break; continue ;;
-  ctrl-n) [[ -n $query ]] || continue; ghq_run_and_open create "$query" && break; continue ;;
-  esac
-
-  [[ -n $sel ]] || exit 0   # ESC
-  open_workspace "$sel"
-  break
 done

@@ -114,7 +114,15 @@ unset _rc
 # ====================
 # --session main: attach if it exists, create otherwise. exec: quitting herdr closes the terminal.
 # HERDR_ENV means we are inside a herdr-managed pane — guards against nesting.
+# Only the first window auto-attaches. herdr 0.8.2 resizes panes from whichever client was
+# active last, so a second (smaller) client shrinks every pane on each cmd press.
+# herdr reports no client count; the server runs as `<path>/herdr server`, so this pattern
+# matches clients only.
 if command -v herdr &> /dev/null && [ -z "$HERDR_ENV" ] && [ -z "$GHOSTTY_QUICK_TERMINAL" ]; then
-  exec herdr --session main
+  if pgrep -qf '^herdr --session main'; then
+    echo "herdr: session main already attached — run 'herdr --session main' to attach here"
+  else
+    exec herdr --session main
+  fi
 fi
 

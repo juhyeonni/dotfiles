@@ -55,7 +55,7 @@ as a rollback path — to go back, run `brew install tmux sesh && stow tmux sesh
 auto-attach in `.zshrc` back to tmux.
 
 stow only creates symlinks. Extra per-program installs (plugins and so on) are covered in the
-sections below. The dev loop (enter project → code → commit) is in [WORKFLOW.md](WORKFLOW.md).
+sections below.
 
 **Language runtimes (Rust, Node, Deno, Bun, JVM, gcloud) are not part of this.** The bootstrap sets
 up shell, editor and terminal only; runtimes get installed when a project needs them

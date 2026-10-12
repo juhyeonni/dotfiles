@@ -1,3 +1,4 @@
+onboarding = false
 # herdr — terminal multiplexer. Hierarchy: workspace > tab > pane.
 # Defaults: `herdr --default-config`. Validate with `herdr config check`.
 # After editing, run `herdr server reload-config` — it does not watch the file.

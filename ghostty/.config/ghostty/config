@@ -9,7 +9,7 @@ theme = Kanagawa Dragon
 font-family = MuxJK
 font-size = 14
 font-thicken = true
-adjust-cell-height = 1
+adjust-cell-height = 20%
 
 # ==============================================
 #  Window

@@ -134,3 +134,4 @@ if [ -z "$HERDR_ENV" ]; then
   bindkey '^AD' _close_shell
 fi
 
+export CLOUDSDK_PYTHON="$HOME/.local/share/uv/python/cpython-3.12-macos-x86_64-none/bin/python3.12"

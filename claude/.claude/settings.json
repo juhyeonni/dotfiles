@@ -1,5 +1,5 @@
 {
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -32,7 +32,11 @@
     "annotated-ui-pdf@anesis-dx": true,
     "ponytail@ponytail": true,
     "document-skills@anthropic-agent-skills": true,
-    "mattpocock-skills@mattpocock": true
+    "mattpocock-skills@mattpocock": true,
+    "swift-lsp@claude-plugins-official": true,
+    "macro-loop@juhyeonni": true,
+    "macro-loop-band@juhyeonni": true,
+    "humanizer@humanizer": true
   },
   "extraKnownMarketplaces": {
     "ui-ux-pro-max-skill": {
@@ -74,11 +78,30 @@
         "source": "git",
         "url": "https://github.com/mattpocock/skills.git"
       }
+    },
+    "juhyeonni": {
+      "source": {
+        "source": "github",
+        "repo": "juhyeonni/cc-plugins"
+      }
+    },
+    "humanizer": {
+      "source": {
+        "source": "github",
+        "repo": "blader/humanizer"
+      }
     }
   },
   "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "switchModelsOnFlag": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

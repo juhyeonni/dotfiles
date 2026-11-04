@@ -28,7 +28,7 @@ Four places where this diverges from the usual dotfiles.
 | Package | Config |
 |---------|--------|
 | zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (optional layer) |
-| nvim | `.config/nvim/` (LazyVim) |
+| nvim | `.config/nvim/` (`vim.pack`) |
 | herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
@@ -102,28 +102,23 @@ everything else combined.
 
 ## nvim
 
-Based on [LazyVim](https://www.lazyvim.org/). On first launch, lazy.nvim installs the plugins
-according to `lazy-lock.json`.
+A plain `vim.pack` config (nvim 0.12+) with no distribution. `lua/plugins/init.lua` lists every
+plugin in one `vim.pack.add` call, and `nvim-pack-lock.json` pins their commits. On first launch
+nvim installs the plugins.
 
 ```bash
-# align ghq root with nvim lazy's dev.path (~/.ghq/github.com)
-git config --global ghq.root '~/.ghq'
+git config --global ghq.root '~/.ghq'   # where ghq clones repos (~/.ghq/github.com)
 ```
 
-See `.config/nvim/REQUIREMENTS.md` for the remaining requirements.
+Tools Mason installs are not automatic. Run this inside nvim once:
 
-### nvim-next
-
-A `vim.pack` skeleton (nvim 0.12+) lives beside the LazyVim config in `.config/nvim-next/`. It keeps
-its own data directory, so the two never share plugins. `nvim-pack-lock.json` pins the plugin commits.
-
-```bash
-stow -R nvim
-NVIM_APPNAME=nvim-next nvim   # plugins install on first start
-:MasonInstall lua-language-server   # once, inside nvim
+```vim
+:MasonInstall lua-language-server stylua selene luacheck shellcheck shfmt prettier vtsls eslint-lsp css-lsp html-lsp json-lsp yaml-language-server tailwindcss-language-server marksman
 ```
 
-Per-machine settings go in `lua/plugins/local.lua` (git-ignored, optional).
+Treesitter parsers need `brew install tree-sitter-cli`. Per-machine settings go in
+`lua/plugins/local.lua` (git-ignored, optional). See `.config/nvim/REQUIREMENTS.md` for the
+remaining requirements.
 
 ## herdr
 

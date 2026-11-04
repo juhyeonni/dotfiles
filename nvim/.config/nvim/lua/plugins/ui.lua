@@ -1,234 +1,175 @@
-return {
-	-- messages, cmdline and the popupmenu
-	{
-		"folke/noice.nvim",
-		opts = function(_, opts)
-			table.insert(opts.routes, {
-				filter = {
-					event = "notify",
-					find = "No information available",
+require("kanagawa").setup({
+	colors = {
+		theme = {
+			all = {
+				ui = {
+					bg_gutter = "none",
 				},
-				opts = { skip = true },
-			})
-			local focused = true
-			vim.api.nvim_create_autocmd("FocusGained", {
-				callback = function()
-					focused = true
-				end,
-			})
-			vim.api.nvim_create_autocmd("FocusLost", {
-				callback = function()
-					focused = false
-				end,
-			})
-			table.insert(opts.routes, 1, {
-				filter = {
-					cond = function()
-						return not focused
-					end,
-				},
-				view = "notify_send",
-				opts = { stop = false },
-			})
-
-			opts.commands = {
-				all = {
-					-- options for the message history that you get with `:Noice`
-					view = "split",
-					opts = { enter = true, format = "details" },
-					filter = {},
-				},
-			}
-
-			vim.api.nvim_create_autocmd("FileType", {
-				pattern = "markdown",
-				callback = function(event)
-					vim.schedule(function()
-						require("noice.text.markdown").keys(event.buf)
-					end)
-				end,
-			})
-
-			-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-			opts.lsp = vim.tbl_deep_extend("force", opts.lsp or {}, {
-				override = {
-					["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-					["vim.lsp.util.stylize_markdown"] = true,
-					["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
-				},
-			})
-
-			-- presets for easier configuration
-			opts.presets = vim.tbl_deep_extend("force", opts.presets or {}, {
-				bottom_search = true, -- use a classic bottom cmdline for search
-				command_palette = true, -- position the cmdline and popupmenu together
-				long_message_to_split = true, -- long messages will be sent to a split
-				inc_rename = false, -- enables an input dialog for inc-rename.nvim
-				lsp_doc_border = true, -- add a border to hover docs and signature help
-			})
-		end,
-	},
-
-	{
-		"rcarriga/nvim-notify",
-		opts = {
-			timeout = 3000,
-			fps = 60,
-			stages = "fade_in_slide_out",
-			render = "wrapped-compact",
-			top_down = true,
-			max_width = 60,
-			max_height = 10,
-			minimum_width = 30,
-		},
-	},
-
-	{
-		"snacks.nvim",
-		opts = {
-			scroll = { enabled = false },
-		},
-	},
-
-	{
-		"akinsho/bufferline.nvim",
-		event = "VeryLazy",
-		keys = {
-			{ "<Tab>", "<Cmd>BufferLineCycleNext<CR>", desc = "Next tab" },
-			{ "<S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", desc = "Prev tab" },
-		},
-		opts = {
-			options = {
-				mode = "tabs",
-				show_buffer_close_icons = false,
-				show_close_icon = false,
 			},
 		},
 	},
+	transparent = true,
+	theme = "dragon",
+	-- background takes precedence over theme, so both must be set
+	background = { dark = "dragon", light = "lotus" },
+})
 
-	-- filename (disabled: it duplicates the dropbar breadcrumbs. Remove `enabled` to bring it back)
-	{
-		"b0o/incline.nvim",
-		enabled = false,
-		dependencies = { "rebelot/kanagawa.nvim" },
-		event = "BufReadPre",
-		priority = 1200,
-		config = function()
-			local palette = require("kanagawa.colors").setup({ theme = "dragon" }).palette
-			require("incline").setup({
-				highlight = {
-					groups = {
-						InclineNormal = { guibg = palette.dragonPink, guifg = palette.dragonBlack0, gui = "bold" },
-						InclineNormalNC = { guifg = palette.dragonGray, guibg = palette.dragonBlack5 },
-					},
-				},
-				window = {
-					margin = { vertical = 1, horizontal = 2 },
-					padding = { left = 1, right = 1 },
-					placement = { horizontal = "right", vertical = "top" },
-				},
-				hide = {
-					cursorline = true,
-				},
-				render = function(props)
-					local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ":t")
-					if vim.bo[props.buf].modified then
-						filename = "[+] " .. filename
-					end
+vim.cmd.colorscheme("kanagawa")
 
-					local icon, color = require("nvim-web-devicons").get_icon_color(filename)
-					return { { icon, guifg = color }, { " " }, { filename } }
-				end,
-			})
-		end,
-	},
+-- mini.icons stands in for nvim-web-devicons, which lualine and others look for
+require("mini.icons").setup()
+MiniIcons.mock_nvim_web_devicons()
 
-	-- statusline
-	{
-		"nvim-lualine/lualine.nvim",
-		opts = function(_, opts)
-			local LazyVim = require("lazyvim.util")
-			opts.sections.lualine_c[4] = {
-				LazyVim.lualine.pretty_path({
-					length = 0,
-					relative = "cwd",
-					modified_hl = "MatchParen",
-					directory_hl = "",
-					filename_hl = "Bold",
-					modified_sign = "",
-					readonly_icon = " 󰌾 ",
-				}),
-			}
-		end,
-	},
+require("which-key").setup({})
 
-	{
-		"folke/zen-mode.nvim",
-		cmd = "ZenMode",
-		opts = {
-			plugins = {
-				gitsigns = true,
-				tmux = true,
-				kitty = { enabled = false, font = "+2" },
-			},
-		},
-		keys = { { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" } },
-	},
-
-	{
-		"folke/snacks.nvim",
-		opts = {
-			dashboard = {
-				preset = {
-					header = [[
-       _       __                                 _ 
+require("snacks").setup({
+	scroll = { enabled = false },
+	bigfile = { enabled = true },
+	quickfile = { enabled = true },
+	notifier = { enabled = true },
+	picker = { enabled = true },
+	dashboard = {
+		enabled = true,
+		preset = {
+			header = [[
+       _       __                                 _
       (_)_  __/ /_  __  _____  ____  ____  ____  (_)
-     / / / / / __ \/ / / / _ \/ __ \/ __ \/ __ \/ / 
-    / / /_/ / / / / /_/ /  __/ /_/ / / / / / / / /  
- __/ /\__,_/_/ /_/\__, /\___/\____/_/ /_/_/ /_/_/   
-/___/            /____/                             
+     / / / / / __ \/ / / / _ \/ __ \/ __ \/ __ \/ /
+    / / /_/ / / / / /_/ /  __/ /_/ / / / / / / / /
+ __/ /\__,_/_/ /_/\__, /\___/\____/_/ /_/_/ /_/_/
+/___/            /____/
             ]],
-				},
+		},
+	},
+})
+
+-- Send messages to the system notification centre while the terminal is unfocused
+local focused = true
+vim.api.nvim_create_autocmd("FocusGained", {
+	callback = function()
+		focused = true
+	end,
+})
+vim.api.nvim_create_autocmd("FocusLost", {
+	callback = function()
+		focused = false
+	end,
+})
+
+require("noice").setup({
+	routes = {
+		{
+			filter = {
+				cond = function()
+					return not focused
+				end,
+			},
+			view = "notify_send",
+			opts = { stop = false },
+		},
+		{
+			filter = { event = "notify", find = "No information available" },
+			opts = { skip = true },
+		},
+	},
+	commands = {
+		all = {
+			-- options for the message history that you get with `:Noice`
+			view = "split",
+			opts = { enter = true, format = "details" },
+			filter = {},
+		},
+	},
+	-- override markdown rendering so that blink.cmp and other plugins use Treesitter
+	lsp = {
+		override = {
+			["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+			["vim.lsp.util.stylize_markdown"] = true,
+		},
+	},
+	presets = {
+		bottom_search = true, -- use a classic bottom cmdline for search
+		command_palette = true, -- position the cmdline and popupmenu together
+		long_message_to_split = true, -- long messages will be sent to a split
+		inc_rename = false, -- enables an input dialog for inc-rename.nvim
+		lsp_doc_border = true, -- add a border to hover docs and signature help
+	},
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "markdown",
+	callback = function(event)
+		vim.schedule(function()
+			require("noice.text.markdown").keys(event.buf)
+		end)
+	end,
+})
+
+require("bufferline").setup({
+	options = {
+		mode = "tabs",
+		show_buffer_close_icons = false,
+		show_close_icon = false,
+	},
+})
+vim.keymap.set("n", "<Tab>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Next tab" })
+vim.keymap.set("n", "<S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Prev tab" })
+
+require("lualine").setup({
+	sections = {
+		lualine_c = {
+			{
+				"filename",
+				path = 1,
+				symbols = { modified = "", readonly = " 󰌾 " },
 			},
 		},
 	},
-	{
-		"karb94/neoscroll.nvim",
-		config = function()
-			require("neoscroll").setup({
-				mappings = {},
-				hide_cursor = false, -- keep the cursor visible so smear-cursor draws motion consistently
-				stop_eof = true,
-				respect_scrolloff = false,
-				cursor_scrolls_alone = true,
-				easing_function = "quadratic",
-			})
+})
 
-			local neoscroll = require("neoscroll")
-			local keymap = {
-				["<C-u>"] = function() neoscroll.ctrl_u({ duration = 100 }) end,
-				["<C-d>"] = function() neoscroll.ctrl_d({ duration = 100 }) end,
-				["<C-b>"] = function() neoscroll.ctrl_b({ duration = 250 }) end,
-				["<C-f>"] = function() neoscroll.ctrl_f({ duration = 250 }) end,
-				["<C-y>"] = function() neoscroll.scroll(-0.1, { move_cursor = false, duration = 100 }) end,
-				["<C-e>"] = function() neoscroll.scroll(0.1, { move_cursor = false, duration = 100 }) end,
-				["zt"] = function() neoscroll.zt({ half_win_duration = 100 }) end,
-				["zz"] = function() neoscroll.zz({ half_win_duration = 100 }) end,
-				["zb"] = function() neoscroll.zb({ half_win_duration = 100 }) end,
-			}
-			local modes = { "n", "v", "x" }
-			for key, func in pairs(keymap) do
-				vim.keymap.set(modes, key, func)
-			end
-		end,
+require("zen-mode").setup({
+	plugins = {
+		gitsigns = true,
+		kitty = { enabled = false, font = "+2" },
 	},
-	{
-		"sphamba/smear-cursor.nvim",
-		opts = {
-			distance_stop_animating = 0.8,
-			stiffness = 0.5,
-			trailing_stiffness = 0.5,
-			matrix_pixel_threshold = 0.5,
-		},
-	},
+})
+vim.keymap.set("n", "<leader>z", "<cmd>ZenMode<cr>", { desc = "Zen Mode" })
+
+local neoscroll = require("neoscroll")
+neoscroll.setup({
+	mappings = {},
+	hide_cursor = false, -- keep the cursor visible so smear-cursor draws motion consistently
+	stop_eof = true,
+	respect_scrolloff = false,
+	cursor_scrolls_alone = true,
+	easing_function = "quadratic",
+})
+
+-- stylua: ignore
+local scroll_keys = {
+	["<C-u>"] = function() neoscroll.ctrl_u({ duration = 100 }) end,
+	["<C-d>"] = function() neoscroll.ctrl_d({ duration = 100 }) end,
+	["<C-b>"] = function() neoscroll.ctrl_b({ duration = 250 }) end,
+	["<C-f>"] = function() neoscroll.ctrl_f({ duration = 250 }) end,
+	["<C-y>"] = function() neoscroll.scroll(-0.1, { move_cursor = false, duration = 100 }) end,
+	["<C-e>"] = function() neoscroll.scroll(0.1, { move_cursor = false, duration = 100 }) end,
+	["zt"] = function() neoscroll.zt({ half_win_duration = 100 }) end,
+	["zz"] = function() neoscroll.zz({ half_win_duration = 100 }) end,
+	["zb"] = function() neoscroll.zb({ half_win_duration = 100 }) end,
 }
+for key, func in pairs(scroll_keys) do
+	vim.keymap.set({ "n", "v", "x" }, key, func)
+end
+
+require("smear_cursor").setup({
+	distance_stop_animating = 0.8,
+	stiffness = 0.5,
+	trailing_stiffness = 0.5,
+	matrix_pixel_threshold = 0.5,
+})
+
+-- breadcrumbs: show the "file > class > function" path in the winbar
+require("dropbar").setup({})
+vim.keymap.set("n", "<leader>;", function()
+	require("dropbar.api").pick()
+end, { desc = "Breadcrumbs pick" })

@@ -1,405 +1,194 @@
-return {
-	{
-		"folke/flash.nvim",
-		---@type Flash.Config
-		opts = {
-			search = {
-				forward = true,
-				multi_window = false,
-				wrap = false,
-				incremental = true,
-			},
-		},
+local map = vim.keymap.set
+
+-- Files: oil replaces netrw and the old file browser; hidden and git-ignored files stay visible
+require("oil").setup({
+	default_file_explorer = true,
+	view_options = { show_hidden = true },
+})
+map("n", "<leader>fB", function()
+	require("oil").open(vim.fn.expand("%:p:h"))
+end, { desc = "Open file browser at the current buffer" })
+
+-- Pickers (snacks)
+map("n", ";f", function()
+	Snacks.picker.files({ hidden = true })
+end, { desc = "Files in cwd, respects .gitignore" })
+map("n", ";r", function()
+	Snacks.picker.grep({ hidden = true })
+end, { desc = "Live grep in cwd" })
+map("n", "\\\\", function()
+	Snacks.picker.buffers()
+end, { desc = "Open buffers" })
+map("n", ";t", function()
+	Snacks.picker.help()
+end, { desc = "Help tags" })
+map("n", ";;", function()
+	Snacks.picker.resume()
+end, { desc = "Resume the previous picker" })
+map("n", ";e", function()
+	Snacks.picker.diagnostics()
+end, { desc = "Diagnostics" })
+map("n", ";s", function()
+	Snacks.picker.treesitter()
+end, { desc = "Treesitter symbols" })
+map("n", "<leader>fP", function()
+	Snacks.picker.files({ cwd = vim.fn.stdpath("data") .. "/site/pack/core/opt" })
+end, { desc = "Find Plugin File" })
+
+require("flash").setup({
+	search = {
+		forward = true,
+		multi_window = false,
+		wrap = false,
+		incremental = true,
 	},
+})
+map({ "n", "x", "o" }, "s", function()
+	require("flash").jump()
+end, { desc = "Flash" })
+map({ "n", "x", "o" }, "S", function()
+	require("flash").treesitter()
+end, { desc = "Flash Treesitter" })
 
-	{
-		"nvim-mini/mini.hipatterns",
-		event = "BufReadPre",
-		opts = {
-			highlighters = {
-				hsl_color = {
-					pattern = "hsl%(%d+,? %d+%%?,? %d+%%?%)",
-					group = function(_, match)
-						local nh, ns, nl = match:match("hsl%((%d+),? (%d+)%%?,? (%d+)%%?%)")
-						local h, s, l = tonumber(nh), tonumber(ns), tonumber(nl)
-						local hex_color = require("craftzdog.hsl").hslToHex(h, s, l)
-						return MiniHipatterns.compute_hex_color_group(hex_color, "bg")
-					end,
-				},
-			},
-		},
-	},
+-- Surround: ys (add) / ds (delete) / cs (change) — wrap quotes, brackets, tags
+require("nvim-surround").setup({})
+require("mini.pairs").setup({})
 
-	{
-		"dinhhuy258/git.nvim",
-		event = "BufReadPre",
-		opts = {
-			keymaps = {
-				-- Open blame window
-				blame = "<Leader>gb",
-				-- Open file/folder in git repository
-				browse = "<Leader>go",
-			},
-		},
-	},
+-- Go forward/backward with square brackets
+require("mini.bracketed").setup({
+	file = { suffix = "" },
+	window = { suffix = "" },
+	quickfix = { suffix = "" },
+	yank = { suffix = "" },
+	treesitter = { suffix = "n" },
+})
 
-	{
-		"nvim-telescope/telescope.nvim",
-		dependencies = {
-			{
-				"nvim-telescope/telescope-fzf-native.nvim",
-				build = "make",
-			},
-			"nvim-telescope/telescope-file-browser.nvim",
-		},
-		keys = {
-			{
-				"<leader>fP",
-				function()
-					require("telescope.builtin").find_files({
-						cwd = require("lazy.core.config").options.root,
-					})
-				end,
-				desc = "Find Plugin File",
-			},
-			{
-				";f",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.find_files({
-						no_ignore = false,
-						hidden = true,
-					})
-				end,
-				desc = "Lists files in your current working directory, respects .gitignore",
-			},
-			{
-				";r",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.live_grep({
-						additional_args = { "--hidden" },
-					})
-				end,
-				desc = "Search for a string in your current working directory and get results live as you type, respects .gitignore",
-			},
-			{
-				"\\\\",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.buffers()
-				end,
-				desc = "Lists open buffers",
-			},
-			{
-				";t",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.help_tags()
-				end,
-				desc = "Lists available help tags and opens a new window with the relevant help info on <cr>",
-			},
-			{
-				";;",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.resume()
-				end,
-				desc = "Resume the previous telescope picker",
-			},
-			{
-				";e",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.diagnostics()
-				end,
-				desc = "Lists Diagnostics for all open buffers or a specific buffer",
-			},
-			{
-				";s",
-				function()
-					local builtin = require("telescope.builtin")
-					builtin.treesitter()
-				end,
-				desc = "Lists Function names, variables, from Treesitter",
-			},
-			{
-				"<leader>fB",
-				function()
-					local telescope = require("telescope")
-
-					local function telescope_buffer_dir()
-						return vim.fn.expand("%:p:h")
-					end
-
-					telescope.extensions.file_browser.file_browser({
-						path = "%:p:h",
-						cwd = telescope_buffer_dir(),
-						respect_gitignore = false,
-						hidden = true,
-						grouped = true,
-						previewer = false,
-						initial_mode = "normal",
-						layout_config = { height = 40 },
-					})
-				end,
-				desc = "Open File Browser with the path of the current buffer",
-			},
-		},
-		config = function(_, opts)
-			local telescope = require("telescope")
-			local actions = require("telescope.actions")
-			local fb_actions = require("telescope").extensions.file_browser.actions
-
-			-- reset to defaults
-			opts = opts or {}
-			opts.defaults = opts.defaults or {}
-			opts.extensions = opts.extensions or {}
-
-			opts.defaults = vim.tbl_deep_extend("force", opts.defaults, {
-				wrap_results = true,
-				layout_strategy = "horizontal",
-				layout_config = { prompt_position = "top" },
-				sorting_strategy = "ascending",
-				winblend = 0,
-				mappings = {
-					n = {},
-				},
-			})
-			opts.pickers = {
-				diagnostics = {
-					theme = "ivy",
-					initial_mode = "normal",
-					layout_config = {
-						preview_cutoff = 9999,
-					},
-				},
-			}
-			opts.extensions = {
-				file_browser = {
-					theme = "dropdown",
-					-- disables netrw and use telescope-file-browser in its place
-					hijack_netrw = true,
-					mappings = {
-						-- your custom insert mode mappings
-						["n"] = {
-							-- your custom normal mode mappings
-							["N"] = fb_actions.create,
-							["h"] = fb_actions.goto_parent_dir,
-							["/"] = function()
-								vim.cmd("startinsert")
-							end,
-							["<C-u>"] = function(prompt_bufnr)
-								for i = 1, 10 do
-									actions.move_selection_previous(prompt_bufnr)
-								end
-							end,
-							["<C-d>"] = function(prompt_bufnr)
-								for i = 1, 10 do
-									actions.move_selection_next(prompt_bufnr)
-								end
-							end,
-							["<PageUp>"] = actions.preview_scrolling_up,
-							["<PageDown>"] = actions.preview_scrolling_down,
-						},
-					},
-				},
-			}
-			telescope.setup(opts)
-			require("telescope").load_extension("fzf")
-			require("telescope").load_extension("file_browser")
-		end,
-	},
-
-	{
-		"saghen/blink.cmp",
-		opts = {
-			completion = {
-				menu = {
-					winblend = vim.o.pumblend,
-				},
-			},
-			signature = {
-				window = {
-					winblend = vim.o.pumblend,
-				},
-			},
-		},
-	},
-
-	{ "wakatime/vim-wakatime", lazy = false },
-
-	-- Project-wide find/replace (<leader>sr) — bulk substitution UI across files
-	{
-		"MagicDuck/grug-far.nvim",
-		cmd = "GrugFar",
-		opts = { headerMaxWidth = 80 },
-		keys = {
-			{
-				"<leader>sr",
-				function()
-					local grug = require("grug-far")
-					local ext = vim.bo.buftype == "" and vim.fn.expand("%:e")
-					grug.open({
-						transient = true,
-						prefills = { filesFilter = ext and ext ~= "" and "*." .. ext or nil },
-					})
-				end,
-				mode = { "n", "v" },
-				desc = "Search and Replace (grug-far)",
-			},
-		},
-	},
-
-	{
-		"MeanderingProgrammer/render-markdown.nvim",
-		ft = { "markdown", "codecompanion" },
-		opts = {
-			-- Show raw markup only on the cursor line (easier editing); render everything else
-			anti_conceal = { enabled = true },
-			-- Indent body text by heading level so the hierarchy reads like a document
-			indent = {
-				enabled = true,
-				per_level = 2, -- indent columns per level
-				skip_level = 1, -- do not indent body under H1 (keep the top level flat)
-				skip_heading = false,
-			},
-			heading = {
-				sign = false,
-				icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
-				width = "full", -- background bar across the whole heading line -> clearer section breaks
-				border = true,
-			},
-			code = {
-				sign = false,
-				style = "full",
-				width = "block",
-				min_width = 40,
-				right_pad = 2,
-				left_pad = 1,
-				border = "thin",
-				language_icon = true,
-				language_name = true,
-			},
-			bullet = {
-				icons = { "● ", "○ ", "◆ ", "◇ " },
-			},
-			checkbox = {
-				enabled = true,
-				unchecked = { icon = "󰄱 " },
-				checked = { icon = "󰱒 " },
-			},
-			pipe_table = {
-				enabled = true,
-				preset = "round", -- rounded corner border
-				-- 'padded': pads each cell to the column's max display width, so ragged source still aligns
-				-- (CJK characters count as 2 columns via strdisplaywidth)
-				cell = "padded",
-				padding = 1,
-				-- Show the direction on alignment rows (:---, ---:, :--:)
-				alignment_indicator = "━",
-				-- Draw top/bottom borders as virtual lines, so it does not rely on blank lines around the table
-				border_virtual = true,
-			},
-			-- Highlight GitHub callouts like > [!NOTE] (using the default set)
-			quote = { icon = "▎" },
-		},
-	},
-
-	{
-		"lewis6991/gitsigns.nvim",
-		opts = {
-			signs = {
-				add = { text = "▎" },
-				change = { text = "▎" },
-				delete = { text = "" },
-				topdelete = { text = "" },
-				changedelete = { text = "▎" },
-				untracked = { text = "▎" },
-			},
-			on_attach = function(bufnr)
-				local gs = package.loaded.gitsigns
-
-				local function map(mode, l, r, desc)
-					vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
-				end
-
-				-- Navigation
-				map("n", "]h", gs.next_hunk, "Next Hunk")
-				map("n", "[h", gs.prev_hunk, "Prev Hunk")
-
-				-- Actions
-				map("n", "<leader>hs", gs.stage_hunk, "Stage Hunk")
-				map("n", "<leader>hr", gs.reset_hunk, "Reset Hunk")
-				map("v", "<leader>hs", function()
-					gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-				end, "Stage Hunk")
-				map("v", "<leader>hr", function()
-					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-				end, "Reset Hunk")
-
-				map("n", "<leader>hS", gs.stage_buffer, "Stage Buffer")
-				map("n", "<leader>hR", gs.reset_buffer, "Reset Buffer")
-
-				map("n", "<leader>hu", gs.undo_stage_hunk, "Undo Stage Hunk")
-				map("n", "<leader>hp", gs.preview_hunk, "Preview Hunk")
-
-				map("n", "<leader>hb", function()
-					gs.blame_line({ full = true })
-				end, "Blame Line")
-				map("n", "<leader>hB", gs.toggle_current_line_blame, "Toggle Line Blame")
-
-				map("n", "<leader>hd", gs.diffthis, "Diff This")
-				map("n", "<leader>hD", function()
-					gs.diffthis("~")
-				end, "Diff This ~")
-
-				-- Text object
-				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "GitSigns Select Hunk")
+local hipatterns = require("mini.hipatterns")
+hipatterns.setup({
+	highlighters = {
+		hex_color = hipatterns.gen_highlighter.hex_color(),
+		hsl_color = {
+			pattern = "hsl%(%d+,? %d+%%?,? %d+%%?%)",
+			group = function(_, match)
+				local nh, ns, nl = match:match("hsl%((%d+),? (%d+)%%?,? (%d+)%%?%)")
+				local h, s, l = tonumber(nh), tonumber(ns), tonumber(nl)
+				local hex_color = require("utils.hsl").hslToHex(h, s, l)
+				return hipatterns.compute_hex_color_group(hex_color, "bg")
 			end,
 		},
 	},
+})
 
-	{
-		"HakonHarnes/img-clip.nvim",
-		opts = {},
+-- Better increase/decrease
+local augend = require("dial.augend")
+require("dial.config").augends:register_group({
+	default = {
+		augend.integer.alias.decimal,
+		augend.integer.alias.hex,
+		augend.date.alias["%Y/%m/%d"],
+		augend.constant.alias.bool,
+		augend.semver.alias.semver,
+		augend.constant.new({ elements = { "let", "const" } }),
 	},
-	{
-		"sindrets/diffview.nvim",
-		cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
-		keys = {
-			{ "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Diffview Open" },
-			{ "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "File History" },
-			{ "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "Branch History" },
-		},
-		opts = {
-			view = {
-				default = { winbar_info = true },
-				file_history = { winbar_info = true },
-			},
+})
+map("n", "<C-a>", function()
+	return require("dial.map").inc_normal()
+end, { expr = true, desc = "Increment" })
+map("n", "<C-x>", function()
+	return require("dial.map").dec_normal()
+end, { expr = true, desc = "Decrement" })
+
+require("refactoring").setup({})
+map("v", "<leader>r", function()
+	require("refactoring").select_refactor()
+end, { noremap = true, silent = true })
+
+require("outline").setup({ outline_window = { position = "right" } })
+map("n", "<leader>cs", "<cmd>Outline<cr>", { desc = "Code Outline" })
+
+-- Project-wide find/replace — bulk substitution UI across files
+require("grug-far").setup({ headerMaxWidth = 80 })
+map({ "n", "v" }, "<leader>sr", function()
+	local ext = vim.bo.buftype == "" and vim.fn.expand("%:e")
+	require("grug-far").open({
+		transient = true,
+		prefills = { filesFilter = ext and ext ~= "" and "*." .. ext or nil },
+	})
+end, { desc = "Search and Replace (grug-far)" })
+
+require("trouble").setup({})
+
+require("todo-comments").setup({})
+map("n", "]t", function()
+	require("todo-comments").jump_next()
+end, { desc = "Next Todo Comment" })
+map("n", "[t", function()
+	require("todo-comments").jump_prev()
+end, { desc = "Previous Todo Comment" })
+
+require("render-markdown").setup({
+	-- Show raw markup only on the cursor line (easier editing); render everything else
+	anti_conceal = { enabled = true },
+	-- Indent body text by heading level so the hierarchy reads like a document
+	indent = {
+		enabled = true,
+		per_level = 2, -- indent columns per level
+		skip_level = 1, -- do not indent body under H1 (keep the top level flat)
+		skip_heading = false,
+	},
+	heading = {
+		sign = false,
+		icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
+		width = "full", -- background bar across the whole heading line -> clearer section breaks
+		border = true,
+	},
+	code = {
+		sign = false,
+		style = "full",
+		width = "block",
+		min_width = 40,
+		right_pad = 2,
+		left_pad = 1,
+		border = "thin",
+		language_icon = true,
+		language_name = true,
+	},
+	bullet = {
+		icons = { "● ", "○ ", "◆ ", "◇ " },
+	},
+	checkbox = {
+		enabled = true,
+		unchecked = { icon = "󰄱 " },
+		checked = { icon = "󰱒 " },
+	},
+	pipe_table = {
+		enabled = true,
+		preset = "round", -- rounded corner border
+		-- 'padded': pads each cell to the column's max display width, so ragged source still aligns
+		-- (CJK characters count as 2 columns via strdisplaywidth)
+		cell = "padded",
+		padding = 1,
+		-- Show the direction on alignment rows (:---, ---:, :--:)
+		alignment_indicator = "━",
+		-- Draw top/bottom borders as virtual lines, so it does not rely on blank lines around the table
+		border_virtual = true,
+	},
+	-- Highlight GitHub callouts like > [!NOTE] (using the default set)
+	quote = { icon = "▎" },
+})
+
+require("claude-code").setup({
+	window = {
+		split_ratio = 0.3, -- Percentage of screen for the terminal window (height for horizontal, width for vertical splits)
+		position = "vertical", -- Position of the window: "botright", "topleft", "vertical", "rightbelow vsplit", etc.
+		enter_insert = true, -- Whether to enter insert mode when opening Claude Code
+		hide_numbers = true, -- Hide line numbers in the terminal window
+		hide_signcolumn = true, -- Hide the sign column in the terminal window
+	},
+	keymaps = {
+		toggle = {
+			normal = "<C-\\><C-\\>",
+			terminal = "<C-\\><C-\\>",
 		},
 	},
-	{
-		"greggh/claude-code.nvim",
-		dependencies = {
-			"nvim-lua/plenary.nvim", -- Required for git operations
-		},
-		config = function()
-			require("claude-code").setup({
-				window = {
-					split_ratio = 0.3, -- Percentage of screen for the terminal window (height for horizontal, width for vertical splits)
-					position = "vertical", -- Position of the window: "botright", "topleft", "vertical", "rightbelow vsplit", etc.
-					enter_insert = true, -- Whether to enter insert mode when opening Claude Code
-					hide_numbers = true, -- Hide line numbers in the terminal window
-					hide_signcolumn = true, -- Hide the sign column in the terminal window
-				},
-				keymaps = {
-					toggle = {
-						normal = "<C-\\><C-\\>",
-						terminal = "<C-\\><C-\\>",
-					},
-				},
-			})
-		end,
-	},
-}
+})

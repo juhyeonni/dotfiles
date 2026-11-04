@@ -25,7 +25,7 @@
 | Package | Config |
 |---------|--------|
 | zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
-| nvim | `.config/nvim/` (LazyVim) |
+| nvim | `.config/nvim/` (`vim.pack`) |
 | herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
 | ghostty | `.config/ghostty/config` |
 | git | `.gitconfig`, `.config/git/ignore` |
@@ -95,27 +95,21 @@ git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fz
 
 ## nvim
 
-[LazyVim](https://www.lazyvim.org/) 기반. 플러그인은 첫 실행 시 lazy.nvim이 `lazy-lock.json`대로 자동 설치한다.
+배포판 없이 `vim.pack`만 쓰는 설정(nvim 0.12 이상). `lua/plugins/init.lua`가 모든 플러그인을 `vim.pack.add`
+한 번에 나열하고, `nvim-pack-lock.json`이 커밋을 고정한다. 첫 실행 때 nvim이 플러그인을 설치한다.
 
 ```bash
-# ghq root를 nvim lazy dev.path(~/.ghq/github.com)와 맞춤
-git config --global ghq.root '~/.ghq'
+git config --global ghq.root '~/.ghq'   # ghq가 저장소를 받는 위치(~/.ghq/github.com)
 ```
 
-추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
+Mason 도구는 자동으로 설치되지 않는다. nvim 안에서 한 번 실행한다.
 
-### nvim-next
-
-`vim.pack` 기반 스켈레톤(nvim 0.12 이상)이 LazyVim 설정 옆의 `.config/nvim-next/`에 있다. 데이터
-디렉터리가 따로라 두 설정은 플러그인을 공유하지 않는다. 플러그인 커밋은 `nvim-pack-lock.json`이 고정한다.
-
-```bash
-stow -R nvim
-NVIM_APPNAME=nvim-next nvim   # 첫 실행 때 플러그인 설치
-:MasonInstall lua-language-server   # nvim 안에서 한 번
+```vim
+:MasonInstall lua-language-server stylua selene luacheck shellcheck shfmt prettier vtsls eslint-lsp css-lsp html-lsp json-lsp yaml-language-server tailwindcss-language-server marksman
 ```
 
-기기별 설정은 `lua/plugins/local.lua`에 둔다(git 무시, 선택).
+treesitter 파서는 `brew install tree-sitter-cli`가 필요하다. 기기별 설정은 `lua/plugins/local.lua`에 둔다
+(git 무시, 선택). 추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
 
 ## herdr
 

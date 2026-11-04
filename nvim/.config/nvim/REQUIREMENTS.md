@@ -23,22 +23,23 @@ This document lists all system dependencies required for this Neovim configurati
 
 | Tool | Purpose | Auto-installed by Mason? |
 |------|---------|--------------------------|
-| **git** | Plugin management (lazy.nvim) | ❌ Required |
-| **make** | Building native extensions | ❌ Required |
-| **gcc/clang** | C compiler for treesitter | ❌ Required |
-| **node & npm** | LSP servers, markdown preview | ❌ Required |
-| **ripgrep (rg)** | Fast file searching (Telescope) | ❌ Required |
-| **fd** | Fast file finder (Telescope) | ❌ Recommended |
+| **neovim 0.12+** | `vim.pack` plugin manager | ❌ Required |
+| **git** | Plugin management (`vim.pack`) | ❌ Required |
+| **gcc/clang** | C compiler for treesitter parsers | ❌ Required |
+| **tree-sitter-cli** | Builds treesitter parsers (`brew install tree-sitter-cli`) | ❌ Required |
+| **node & npm** | LSP servers installed by Mason | ❌ Required |
+| **ripgrep (rg)** | Fast file searching (snacks picker grep) | ❌ Required |
+| **fd** | Fast file finder (snacks picker files) | ❌ Recommended |
 
-### Language Servers & Tools (Auto-installed)
+### Language Servers & Tools (installed by hand, once)
 
-These will be automatically installed by Mason when you first open Neovim:
+Mason does not install these on its own. Run this inside Neovim once:
 
-- **Lua**: stylua, selene, luacheck
-- **TypeScript/JavaScript**: ts_ls, eslint, prettier
-- **CSS/Tailwind**: css-lsp, tailwindcss-language-server
-- **Shell**: shellcheck, shfmt
-- **Rust**: rust-analyzer (if needed)
+```vim
+:MasonInstall lua-language-server stylua selene luacheck shellcheck shfmt prettier vtsls eslint-lsp css-lsp html-lsp json-lsp yaml-language-server tailwindcss-language-server marksman
+```
+
+rust-analyzer comes from `rustup component add rust-analyzer`, and rustaceanvim starts it.
 
 ---
 
@@ -207,14 +208,11 @@ After installing dependencies, verify everything is working:
 ```bash
 # Check versions
 git --version          # Should be 2.x or higher
-nvim --version         # Should be 0.9.0 or higher
+nvim --version         # Should be 0.12.0 or higher
 node --version         # Should be 16.x or higher
 npm --version          # Should be 8.x or higher
 rg --version           # Should be 13.x or higher
 fd --version           # Should be 8.x or higher
-
-# Test Neovim installation
-nvim --headless "+Lazy! sync" +qa
 
 # First time setup (this will install all plugins)
 nvim
@@ -223,9 +221,9 @@ nvim
 ### First Launch Checklist
 
 1. **Open Neovim**: Run `nvim`
-2. **Plugin Installation**: Lazy.nvim will automatically install plugins (wait for completion)
-3. **Mason Tools**: Run `:Mason` and verify tools are being installed
-4. **Treesitter**: Run `:TSUpdate` to ensure all parsers are installed
+2. **Plugin Installation**: `vim.pack` installs the plugins on first start (wait for completion)
+3. **Mason Tools**: Run the `:MasonInstall` line from above
+4. **Treesitter**: With `tree-sitter-cli` on PATH, restart Neovim and the parsers install on their own
 5. **Health Check**: Run `:checkhealth` to verify everything is working
 
 ---
@@ -233,28 +231,6 @@ nvim
 ## Optional Dependencies
 
 These are not required but enhance functionality:
-
-### tmux (for Zen Mode integration)
-
-**macOS**:
-```bash
-brew install tmux
-```
-
-**Ubuntu/Debian**:
-```bash
-sudo apt install tmux
-```
-
-**Fedora/RHEL**:
-```bash
-sudo dnf install tmux
-```
-
-**Arch Linux**:
-```bash
-sudo pacman -S tmux
-```
 
 ### WakaTime CLI (for time tracking)
 
@@ -279,9 +255,9 @@ sudo apt install wl-clipboard  # for Wayland
 
 ## Troubleshooting
 
-### Issue: Treesitter compilation fails
+### Issue: Treesitter parsers do not install
 
-**Solution**: Ensure you have a C compiler installed.
+**Solution**: Install `tree-sitter-cli` (`brew install tree-sitter-cli`) and make sure a C compiler is installed.
 
 **macOS**:
 ```bash
@@ -313,12 +289,12 @@ npm install -g npm@latest
 
 # Inside Neovim, clean and reinstall
 :MasonUninstallAll
-:MasonInstall stylua selene luacheck shellcheck shfmt typescript-language-server css-lsp tailwindcss-language-server
+:MasonInstall stylua selene luacheck shellcheck shfmt vtsls css-lsp tailwindcss-language-server
 ```
 
-### Issue: Telescope live_grep not working
+### Issue: Live grep not working
 
-**Solution**: Install ripgrep (rg).
+**Solution**: Install ripgrep (rg); the snacks picker grep needs it.
 
 ```bash
 # Verify ripgrep is installed and in PATH
@@ -326,49 +302,6 @@ which rg
 rg --version
 
 # If not found, install using your package manager (see above)
-```
-
-### Issue: telescope-fzf-native fails to build
-
-**Solution**: Install make and a C compiler.
-
-**macOS**:
-```bash
-xcode-select --install
-```
-
-**Linux**:
-```bash
-# Ubuntu/Debian
-sudo apt install build-essential
-
-# Fedora/RHEL
-sudo dnf groupinstall "Development Tools"
-
-# Arch
-sudo pacman -S base-devel
-```
-
-Then rebuild the plugin:
-```vim
-:Lazy build telescope-fzf-native.nvim
-```
-
-### Issue: markdown-preview.nvim fails to build
-
-**Solution**: Ensure Node.js and npm are installed.
-
-```bash
-# Verify Node.js installation
-node --version
-npm --version
-
-# If installed, manually build the plugin
-cd ~/.local/share/nvim/lazy/markdown-preview.nvim/app
-npm install
-
-# Or rebuild from Neovim
-:Lazy build markdown-preview.nvim
 ```
 
 ### Issue: Clipboard not working on Linux
@@ -408,7 +341,7 @@ Consider lazy-loading plugins or disabling unused features.
 
 ## Minimum System Requirements
 
-- **Neovim**: 0.9.0 or higher
+- **Neovim**: 0.12.0 or higher
 - **Node.js**: 16.x or higher
 - **Git**: 2.x or higher
 - **RAM**: 2GB minimum, 4GB recommended
@@ -420,10 +353,10 @@ Consider lazy-loading plugins or disabling unused features.
 
 After installing all dependencies and opening Neovim for the first time:
 
-1. **Wait for plugins to install** (Lazy.nvim will show progress)
+1. **Wait for plugins to install** (`vim.pack` shows progress)
 2. **Run health check**: `:checkhealth`
-3. **Install Mason tools**: `:Mason` (most will auto-install)
-4. **Update Treesitter parsers**: `:TSUpdate`
+3. **Install Mason tools**: the `:MasonInstall` line from above
+4. **Update plugins**: `:lua vim.pack.update()`
 5. **Restart Neovim** to ensure everything loads correctly
 
 ---
@@ -435,8 +368,7 @@ If you encounter issues not covered here:
 1. Run `:checkhealth` in Neovim for diagnostic information
 2. Check plugin-specific help with `:help <plugin-name>`
 3. Review logs: `~/.local/state/nvim/` (Unix) or `~/AppData/Local/nvim-data/` (Windows)
-4. Check lazy.nvim logs: `:Lazy log`
 
 ---
 
-**Last Updated**: 2025-01-11
+**Last Updated**: 2026-11-05

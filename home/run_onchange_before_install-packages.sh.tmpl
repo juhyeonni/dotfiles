@@ -1,0 +1,11 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+# chezmoi reruns this script only when its content changes, so the hash above is what
+# ties it to Brewfile edits. Packages missing from the Brewfile stay installed (no cleanup).
+if ! command -v brew >/dev/null 2>&1; then
+	echo "Homebrew is not installed. Install it from https://brew.sh, then run chezmoi apply again." >&2
+	exit 1
+fi
+brew bundle --file="{{ joinPath .chezmoi.sourceDir "Brewfile" }}"
+{{- end }}

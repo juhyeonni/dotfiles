@@ -1,3 +1,9 @@
 # nvim docs stay in the repo; deploying them to ~/.config/nvim buys nothing
 .config/nvim/README.md
 .config/nvim/REQUIREMENTS.md
+
+# only the install script reads the Brewfile; it is not deployed to ~/Brewfile
+Brewfile
+
+# per-machine nvim settings stay out of the repo, so a later `chezmoi add` must not deploy it
+.config/nvim/lua/plugins/local.lua

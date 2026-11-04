@@ -35,7 +35,7 @@ Four places where this diverges from the usual dotfiles.
 | nvim | `dot_config/nvim/` | `vim.pack` |
 | herdr | `dot_config/herdr/config.toml`, `dot_config/herdr/scripts/` | multiplexer |
 | ghostty | `dot_config/ghostty/config` | terminal |
-| git | `dot_gitconfig`, `dot_config/git/ignore` | git |
+| git | `dot_gitconfig.tmpl`, `dot_config/git/ignore` | git |
 | karabiner | `dot_config/karabiner/karabiner.json` | key remapping |
 | hammerspoon | `dot_hammerspoon/init.lua` | input source switching |
 | claude | `dot_claude/` | CLAUDE.md (user scope), `settings.json`, statusline, `skills/` |
@@ -47,13 +47,17 @@ repo and are not deployed.
 ## Bootstrap
 
 ```bash
-# 1. Homebrew dependencies
-brew install chezmoi herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
+# 1. chezmoi (Homebrew itself comes first: https://brew.sh)
+brew install chezmoi
 
 # 2. Clone & apply
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 chezmoi init --source ~/dotfiles --apply
 ```
+
+`chezmoi init` asks once for the git name and email (they fill `~/.gitconfig`). `apply` then runs
+`brew bundle` on `home/Brewfile`; it runs again only when the Brewfile changes. Packages missing
+from the Brewfile are never removed.
 
 chezmoi copies files; it does not link them. Extra per-program installs (plugins and so on) are
 covered in the sections below, and the day-to-day commands are in [Day to day](#day-to-day).

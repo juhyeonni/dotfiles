@@ -32,7 +32,7 @@
 | nvim | `dot_config/nvim/` | `vim.pack` |
 | herdr | `dot_config/herdr/config.toml`, `dot_config/herdr/scripts/` | 멀티플렉서 |
 | ghostty | `dot_config/ghostty/config` | 터미널 |
-| git | `dot_gitconfig`, `dot_config/git/ignore` | git |
+| git | `dot_gitconfig.tmpl`, `dot_config/git/ignore` | git |
 | karabiner | `dot_config/karabiner/karabiner.json` | 키 리매핑 |
 | hammerspoon | `dot_hammerspoon/init.lua` | 입력 소스 전환 |
 | claude | `dot_claude/` | CLAUDE.md(유저 스코프), `settings.json`, statusline, `skills/` |
@@ -44,13 +44,17 @@
 ## Bootstrap
 
 ```bash
-# 1. Homebrew dependencies
-brew install chezmoi herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
+# 1. chezmoi (Homebrew 가 먼저 필요: https://brew.sh)
+brew install chezmoi
 
 # 2. Clone & apply
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
 chezmoi init --source ~/dotfiles --apply
 ```
+
+`chezmoi init` 이 git 이름과 이메일을 한 번 묻고, 그 값이 `~/.gitconfig` 에 들어간다. 이어서
+`apply` 가 `home/Brewfile` 로 `brew bundle` 을 실행하며, Brewfile 이 바뀔 때만 다시 실행된다.
+Brewfile 에 없는 패키지는 지우지 않는다.
 
 chezmoi 는 파일을 링크하지 않고 복사한다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션을,
 평소에 쓰는 명령은 [Day to day](#day-to-day) 를 참고.

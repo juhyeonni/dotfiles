@@ -112,6 +112,19 @@ git config --global ghq.root '~/.ghq'
 
 See `.config/nvim/REQUIREMENTS.md` for the remaining requirements.
 
+### nvim-next
+
+A `vim.pack` skeleton (nvim 0.12+) lives beside the LazyVim config in `.config/nvim-next/`. It keeps
+its own data directory, so the two never share plugins. `nvim-pack-lock.json` pins the plugin commits.
+
+```bash
+stow -R nvim
+NVIM_APPNAME=nvim-next nvim   # plugins install on first start
+:MasonInstall lua-language-server   # once, inside nvim
+```
+
+Per-machine settings go in `lua/plugins/local.lua` (git-ignored, optional).
+
 ## herdr
 
 [herdr](https://herdr.dev) — an agent-aware terminal multiplexer. It replaces tmux. The hierarchy is

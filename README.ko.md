@@ -104,6 +104,19 @@ git config --global ghq.root '~/.ghq'
 
 추가 요구사항은 `.config/nvim/REQUIREMENTS.md` 참고.
 
+### nvim-next
+
+`vim.pack` 기반 스켈레톤(nvim 0.12 이상)이 LazyVim 설정 옆의 `.config/nvim-next/`에 있다. 데이터
+디렉터리가 따로라 두 설정은 플러그인을 공유하지 않는다. 플러그인 커밋은 `nvim-pack-lock.json`이 고정한다.
+
+```bash
+stow -R nvim
+NVIM_APPNAME=nvim-next nvim   # 첫 실행 때 플러그인 설치
+:MasonInstall lua-language-server   # nvim 안에서 한 번
+```
+
+기기별 설정은 `lua/plugins/local.lua`에 둔다(git 무시, 선택).
+
 ## herdr
 
 [herdr](https://herdr.dev) — 에이전트 상태를 인지하는 터미널 멀티플렉서. tmux 를 대체한다.

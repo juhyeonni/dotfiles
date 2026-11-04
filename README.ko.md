@@ -47,9 +47,6 @@ stow zsh nvim git ghostty karabiner hammerspoon
 stow --no-folding herdr claude   # 둘 다 생성물이 설정과 같은 디렉토리에 산다 — 폴딩하면 레포로 들어온다
 ```
 
-`tmux`/`sesh` 패키지는 herdr 이주 전 구성이다. 더 이상 stow 하지 않고 롤백용으로만 남겨 뒀다 —
-되돌리려면 `brew install tmux sesh && stow tmux sesh` 후 `.zshrc` 의 auto-attach 를 tmux 로 바꾼다.
-
 stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
 
 **언어 런타임(Rust·Node·Deno·Bun·JVM·gcloud)은 여기에 포함되지 않는다.** 부트스트랩은

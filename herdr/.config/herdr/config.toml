@@ -36,6 +36,13 @@ focus_agent = "prefix+alt+1..9"
 previous_agent = "prefix+alt+k"
 next_agent = "prefix+alt+j"
 
+# Prefix-less pane focus, borrowed from craftzdog. The prefix+hjkl defaults stay in each list.
+# Direct bindings are swallowed by herdr, so a program in the pane (nvim) never sees ctrl+shift+hjkl.
+focus_pane_left = ["prefix+h", "ctrl+shift+h"]
+focus_pane_down = ["prefix+j", "ctrl+shift+j"]
+focus_pane_up = ["prefix+k", "ctrl+shift+k"]
+focus_pane_right = ["prefix+l", "ctrl+shift+l"]
+
 # `description` is the name shown in the prefix+? help instead of "custom command".
 # The "popup" label on the popup border is hardcoded by herdr and not configurable.
 # Project entry point (replaces sesh).
@@ -96,6 +103,22 @@ command = "~/.config/herdr/scripts/pane-join.sh"
 description = "join pane"
 width = "40%"
 height = "40%"
+
+# Open the pane's directory in Finder. prefix+o is taken by the default open_notification_target.
+[[keys.command]]
+key = "prefix+shift+o"
+type = "shell"
+command = "open \"$HERDR_ACTIVE_PANE_CWD\""
+description = "open in finder"
+
+# tmux's kill-pane -a: close every pane in the active tab except the active one.
+# Shift marks destructive keys (like close_tab on prefix+shift+x); prefix+e is the default edit_scrollback.
+# `herdr pane close` skips confirm_close, so this closes immediately with no prompt.
+[[keys.command]]
+key = "prefix+shift+e"
+type = "shell"
+command = "herdr pane list | jq -r --arg t \"$HERDR_ACTIVE_TAB_ID\" --arg p \"$HERDR_ACTIVE_PANE_ID\" '.result.panes[] | select(.tab_id == $t and .pane_id != $p) | .pane_id' | xargs -n1 herdr pane close"
+description = "close other panes"
 
 [ui]
 # The only confirmation prompt herdr has. close_tab / close_pane have none.

@@ -12,4 +12,4 @@ karabiner/.config/karabiner/automatic_backups/
 karabiner/.config/karabiner/assets/
 
 # Per-machine nvim settings
-nvim/.config/nvim-next/lua/plugins/local.lua
+nvim/.config/nvim/lua/plugins/local.lua

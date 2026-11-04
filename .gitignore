@@ -10,6 +10,3 @@ nvim/.config/nvim/lua/.DS_Store
 # Karabiner auto-backup
 karabiner/.config/karabiner/automatic_backups/
 karabiner/.config/karabiner/assets/
-
-# tmux plugins (tpm)
-tmux/.config/tmux/.tmux/

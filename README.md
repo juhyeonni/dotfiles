@@ -50,10 +50,6 @@ stow zsh nvim git ghostty karabiner hammerspoon
 stow --no-folding herdr claude   # both keep generated data beside the config — folding drags it into the repo
 ```
 
-The `tmux` and `sesh` packages are the pre-herdr setup. They are no longer stowed and are kept only
-as a rollback path — to go back, run `brew install tmux sesh && stow tmux sesh` and switch the
-auto-attach in `.zshrc` back to tmux.
-
 stow only creates symlinks. Extra per-program installs (plugins and so on) are covered in the
 sections below.
 

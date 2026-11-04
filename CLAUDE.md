@@ -1,7 +1,7 @@
 # dotfiles
 
 Project instructions for this repo only. The user-scope instructions are a separate file —
-`claude/.claude/CLAUDE.md`, symlinked to `~/.claude/CLAUDE.md` by stow.
+`home/dot_claude/CLAUDE.md`, deployed to `~/.claude/CLAUDE.md` by chezmoi.
 
 ## Rules
 
@@ -10,9 +10,12 @@ Project instructions for this repo only. The user-scope instructions are a separ
   repo, and this repo picks English — as it already does for commit messages and identifiers.
   Prose documents are English too; `README.ko.md` is the one Korean translation, kept in sync with
   `README.md` by hand.
-- The `herdr` and `claude` packages use `stow -R --no-folding`. Links are created per file, so a file
-  newly added to the repo does not exist until stow is run again.
-- After editing `herdr/.config/herdr/config.toml`, run `herdr server reload-config`. herdr does not
-  watch the file. Check syntax with `herdr config check`.
-- stow only creates symlinks. Editing a linked file changes the repo immediately, so even when you
-  edit through the home directory path, the thing being committed is the repo.
+- The source state lives under `home/` (`.chezmoiroot`), named by chezmoi's rules: `dot_` for a
+  leading `.`, `executable_` for the execute bit. A file newly added there reaches the home
+  directory on the next `chezmoi apply`.
+- After editing `home/dot_config/herdr/config.toml`, run `chezmoi apply` and then
+  `herdr server reload-config`. herdr does not watch the file. Check syntax with
+  `herdr config check`.
+- chezmoi deploys copies, not links. Editing a deployed file through the home directory path does
+  not change the repo, so run `chezmoi re-add` afterwards and commit the result. Run `chezmoi diff`
+  before `chezmoi apply` so that a newer edit in the home directory is not overwritten.

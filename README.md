@@ -4,7 +4,7 @@
 
 A macOS dev environment that treats agents as first-class citizens of the terminal. Claude Code and
 pi live in panes, and their state shows up in the sidebar. Managed with
-[GNU Stow](https://www.gnu.org/software/stow/).
+[chezmoi](https://www.chezmoi.io/).
 
 Every config carries **why it is the way it is** — the attempts that were reverted, the traps that
 were stepped on, the numbers that were measured.
@@ -20,38 +20,43 @@ Four places where this diverges from the usual dotfiles.
   than deleted.
 - **[The zsh config is layered](#zsh).** On a new machine with no runtimes installed, the whole of
   `rc.d` is a no-op. `.zshrc` never needs touching.
-- **[`~/.claude` is stowed selectively](#claude).** Over 500M of generated data lives in the same
+- **[`~/.claude` is managed selectively](#claude).** Over 500M of generated data lives in the same
   directory as the config, so what to leave out is harder than what to put in.
 
-## Packages
+## Source tree
 
-| Package | Config |
-|---------|--------|
-| zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (optional layer) |
-| nvim | `.config/nvim/` (`vim.pack`) |
-| herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
-| ghostty | `.config/ghostty/config` |
-| git | `.gitconfig`, `.config/git/ignore` |
-| karabiner | `.config/karabiner/karabiner.json` (key remapping) |
-| hammerspoon | `.hammerspoon/init.lua` (input source switching) |
-| claude | `.claude/` — CLAUDE.md (user scope), `settings.json`, statusline, `skills/` |
-| vimium | `link-hints.css` (not stowed — see [below](#vimium)) |
+`.chezmoiroot` points chezmoi at `home/`, so only what lives there is deployed. Docs, `docs/` and
+`vimium/` sit outside it. Names follow chezmoi's rules: `dot_` becomes a leading `.`, and
+`executable_` sets the execute bit.
+
+| Group | Source under `home/` | Config |
+|-------|----------------------|--------|
+| zsh | `dot_zshrc`, `dot_zprofile`, `dot_config/zsh/rc.d/` | shell (optional layer) |
+| nvim | `dot_config/nvim/` | `vim.pack` |
+| herdr | `dot_config/herdr/config.toml`, `dot_config/herdr/scripts/` | multiplexer |
+| ghostty | `dot_config/ghostty/config` | terminal |
+| git | `dot_gitconfig`, `dot_config/git/ignore` | git |
+| karabiner | `dot_config/karabiner/karabiner.json` | key remapping |
+| hammerspoon | `dot_hammerspoon/init.lua` | input source switching |
+| claude | `dot_claude/` | CLAUDE.md (user scope), `settings.json`, statusline, `skills/` |
+| vimium | `vimium/link-hints.css` | not managed — see [below](#vimium) |
+
+`nvim`'s `README.md` and `REQUIREMENTS.md` are listed in `home/.chezmoiignore`, so they stay in the
+repo and are not deployed.
 
 ## Bootstrap
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
+brew install chezmoi herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
 
-# 2. Clone & stow
+# 2. Clone & apply
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-stow zsh nvim git ghostty karabiner hammerspoon
-stow --no-folding herdr claude   # both keep generated data beside the config — folding drags it into the repo
+chezmoi init --source ~/dotfiles --apply
 ```
 
-stow only creates symlinks. Extra per-program installs (plugins and so on) are covered in the
-sections below.
+chezmoi copies files; it does not link them. Extra per-program installs (plugins and so on) are
+covered in the sections below, and the day-to-day commands are in [Day to day](#day-to-day).
 
 **Language runtimes (Rust, Node, Deno, Bun, JVM, gcloud) are not part of this.** The bootstrap sets
 up shell, editor and terminal only; runtimes get installed when a project needs them
@@ -61,7 +66,7 @@ up shell, editor and terminal only; runtimes get installed when a project needs 
 
 ## zsh
 
-Uses [Oh My Zsh](https://ohmyz.sh/) plus custom plugins. stow does not install them, so clone them
+Uses [Oh My Zsh](https://ohmyz.sh/) plus custom plugins. chezmoi does not install them, so clone them
 separately (the shell starts without errors if they are all missing, but loses completion and
 highlighting).
 
@@ -139,7 +144,7 @@ remaining requirements.
 
 Modifiers pick the target — **shift = workspace, alt = agent**. herdr ships every workspace/agent
 switching binding empty, so these were filled in by hand. The reasoning is in the
-[config.toml](herdr/.config/herdr/config.toml) comments.
+[config.toml](home/dot_config/herdr/config.toml) comments.
 
 - `prefix+S` — the project entry point. Pick a zoxide candidate in fzf and it opens or creates the
   workspace. Duplicates are detected via the `ws_root` metadata token (the original absolute path)
@@ -239,7 +244,7 @@ official docs and the issue tracker report it being unstable for CJK input sourc
 ## pi
 
 [pi](https://pi.dev) — a minimalist coding agent. Its config is `~/.pi/agent/settings.json`.
-**Not stowed** — credentials (`auth.json`) and sessions live in the same directory.
+**Not managed** — credentials (`auth.json`) and sessions live in the same directory.
 
 ```json
 { "defaultTools": ["read","bash","edit","write","grep","find","ls"] }
@@ -260,7 +265,7 @@ For wiring it to herdr, see [pi integration](#pi-integration) in the herdr secti
 
 ## claude
 
-Instructions split across two scopes. **user** is `claude/.claude/CLAUDE.md` → stow →
+Instructions split across two scopes. **user** is `home/dot_claude/CLAUDE.md` → `chezmoi apply` →
 `~/.claude/CLAUDE.md` (applies to every project); **project** is [CLAUDE.md](CLAUDE.md) at the repo
 root (this repo only). Project loads later, so it wins any conflict.
 
@@ -276,7 +281,7 @@ generated, so what to exclude is the hard part.
 | | `history.jsonl`, `file-history/`, `shell-snapshots/` and other caches |
 
 ```bash
-stow --no-folding claude          # folding drags 391M of projects/ into the repo
+chezmoi apply                     # writes only files tracked in the repo, so projects/ (391M) stays out
 herdr integration install claude  # the SessionStart hook in settings.json points at this
 ```
 
@@ -284,13 +289,13 @@ herdr integration install claude  # the SessionStart hook in settings.json point
 or the hook points at a missing path; Claude Code only warns and starts normally either way.
 
 Some entries under `~/.claude/skills/` are symlinks into `~/.agents/skills/` — a separate tool
-manages those, and this package leaves them alone.
+manages those, and chezmoi leaves them alone.
 
 ## vimium
 
-Link hint styling for [Vimium](https://github.com/philc/vimium) on Brave. **Not a stow target** —
+Link hint styling for [Vimium](https://github.com/philc/vimium) on Brave. **Not managed by chezmoi** —
 Vimium settings live in the browser profile's `chrome.storage.sync` (LevelDB) rather than in a file,
-so there is nothing to symlink.
+so there is nothing to deploy.
 
 ```
 Vimium options page → paste vimium/link-hints.css into "CSS for link hints" → Save
@@ -305,15 +310,18 @@ could be version-controlled — but CSS is the only part being touched, so CSS i
 
 ---
 
-## Restow (after changes)
+## Day to day
 
 ```bash
 cd ~/dotfiles
-stow -R <package>
-stow -R --no-folding herdr claude   # never fold these two — omitting the flag drags generated data in
+chezmoi diff     # what differs between the repo and the home directory
+chezmoi re-add   # pull edits made in the home directory back into the repo
+chezmoi apply    # write the repo's state into the home directory
 ```
 
-For `herdr` and `claude` the target is a real directory, so links are created **per file**. That
-means adding a new file to the repo does not create a link automatically — `stow -R` has to be run
-again. Skip it and only that file is silently missing (which looks like a popup dying instantly with
-`exit 127`).
+Files are copies, so an edit made through the home path does not reach the repo by itself. Run
+`chezmoi re-add` after one. This matters most for files their own tool rewrites — Karabiner's
+`karabiner.json` and Claude Code's `settings.json`. Run `chezmoi diff` before `chezmoi apply`, or
+apply overwrites the newer edit.
+
+A file added under `home/` is created by the next `chezmoi apply`; there is no per-package step.

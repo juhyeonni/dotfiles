@@ -1,0 +1,3 @@
+# nvim docs stay in the repo; deploying them to ~/.config/nvim buys nothing
+.config/nvim/README.md
+.config/nvim/REQUIREMENTS.md

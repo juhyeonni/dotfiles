@@ -3,7 +3,7 @@
 > 한국어판. 영어판은 [README.md](README.md).
 
 에이전트를 터미널의 1급 시민으로 다루는 macOS 개발 환경. Claude Code 와 pi 를 pane 에
-띄워두고 상태를 사이드바에서 본다. [GNU Stow](https://www.gnu.org/software/stow/) 로 관리한다.
+띄워두고 상태를 사이드바에서 본다. [chezmoi](https://www.chezmoi.io/) 로 관리한다.
 
 각 설정에는 **왜 그렇게 했는지**가 함께 적혀 있다 — 되돌린 시도, 밟은 함정, 측정값.
 
@@ -17,37 +17,43 @@
   Karabiner 단독으로 해보고 실패했다 — 그 기록과 근거 링크를 지우지 않고 남겨 뒀다.
 - **[zsh 설정이 계층으로 나뉜다](#zsh).** 런타임을 하나도 안 깐 새 머신에서는 `rc.d` 전체가
   통째로 no-op 이 된다. `.zshrc` 는 건드릴 일이 없다.
-- **[`~/.claude` 는 저작물만 골라 stow 한다](#claude).** 500M 넘는 생성물이 설정과 한
+- **[`~/.claude` 는 저작물만 골라 관리한다](#claude).** 500M 넘는 생성물이 설정과 한
   디렉토리에 살아서, 무엇을 넣느냐보다 무엇을 빼느냐가 어렵다.
 
-## Packages
+## Source tree
 
-| Package | Config |
-|---------|--------|
-| zsh | `.zshrc`, `.zprofile`, `.config/zsh/rc.d/` (선택 계층) |
-| nvim | `.config/nvim/` (`vim.pack`) |
-| herdr | `.config/herdr/config.toml`, `.config/herdr/scripts/` |
-| ghostty | `.config/ghostty/config` |
-| git | `.gitconfig`, `.config/git/ignore` |
-| karabiner | `.config/karabiner/karabiner.json` (키 리매핑) |
-| hammerspoon | `.hammerspoon/init.lua` (입력 소스 전환) |
-| claude | `.claude/` — CLAUDE.md(유저 스코프), `settings.json`, statusline, `skills/` |
-| vimium | `link-hints.css` (stow 안 함 — [아래](#vimium) 참고) |
+`.chezmoiroot` 가 chezmoi 를 `home/` 으로 향하게 하므로 그 아래에 있는 것만 배포된다. 문서,
+`docs/`, `vimium/` 은 바깥에 있다. 이름은 chezmoi 규칙을 따른다 — `dot_` 는 맨 앞 `.` 이 되고,
+`executable_` 은 실행 비트를 준다.
+
+| 묶음 | `home/` 아래 소스 | 설정 |
+|------|-------------------|------|
+| zsh | `dot_zshrc`, `dot_zprofile`, `dot_config/zsh/rc.d/` | 셸 (선택 계층) |
+| nvim | `dot_config/nvim/` | `vim.pack` |
+| herdr | `dot_config/herdr/config.toml`, `dot_config/herdr/scripts/` | 멀티플렉서 |
+| ghostty | `dot_config/ghostty/config` | 터미널 |
+| git | `dot_gitconfig`, `dot_config/git/ignore` | git |
+| karabiner | `dot_config/karabiner/karabiner.json` | 키 리매핑 |
+| hammerspoon | `dot_hammerspoon/init.lua` | 입력 소스 전환 |
+| claude | `dot_claude/` | CLAUDE.md(유저 스코프), `settings.json`, statusline, `skills/` |
+| vimium | `vimium/link-hints.css` | 관리하지 않음 — [아래](#vimium) 참고 |
+
+`nvim` 의 `README.md` 와 `REQUIREMENTS.md` 는 `home/.chezmoiignore` 에 올라 있어 레포에만 있고
+배포되지 않는다.
 
 ## Bootstrap
 
 ```bash
 # 1. Homebrew dependencies
-brew install stow herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
+brew install chezmoi herdr neovim jq fzf fd ripgrep bat eza lazygit zoxide ghq
 
-# 2. Clone & stow
+# 2. Clone & apply
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-stow zsh nvim git ghostty karabiner hammerspoon
-stow --no-folding herdr claude   # 둘 다 생성물이 설정과 같은 디렉토리에 산다 — 폴딩하면 레포로 들어온다
+chezmoi init --source ~/dotfiles --apply
 ```
 
-stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션 참고.
+chezmoi 는 파일을 링크하지 않고 복사한다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션을,
+평소에 쓰는 명령은 [Day to day](#day-to-day) 를 참고.
 
 **언어 런타임(Rust·Node·Deno·Bun·JVM·gcloud)은 여기에 포함되지 않는다.** 부트스트랩은
 셸·에디터·터미널까지만 세우고, 런타임은 프로젝트가 필요로 할 때 따로 설치한다
@@ -57,7 +63,7 @@ stow는 심볼릭 링크만 건다. 각 프로그램의 추가 설치(플러그�
 
 ## zsh
 
-[Oh My Zsh](https://ohmyz.sh/) + custom 플러그인을 사용한다. stow로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
+[Oh My Zsh](https://ohmyz.sh/) + custom 플러그인을 사용한다. chezmoi로는 설치되지 않으므로 따로 clone 한다 (모두 없어도 셸은 에러 없이 뜨지만, 자동완성·하이라이트가 빠진다).
 
 ```bash
 # Oh My Zsh 본체
@@ -129,7 +135,7 @@ treesitter 파서는 `brew install tree-sitter-cli`가 필요하다. 기기별 �
 | `prefix+alt+1..9` · `prefix+alt+j/k` | agent |
 
 수식어로 대상을 가른다 — **shift = workspace, alt = agent**. workspace/agent 전환은 herdr
-기본값이 전부 비어 있어 직접 채운 것이다. 이유는 [config.toml](herdr/.config/herdr/config.toml)
+기본값이 전부 비어 있어 직접 채운 것이다. 이유는 [config.toml](home/dot_config/herdr/config.toml)
 주석에 있다.
 
 - `prefix+S` — 프로젝트 진입점. zoxide 후보를 fzf 로 고르면 workspace 를 열거나 만든다.
@@ -226,7 +232,7 @@ Hammerspoon을 없애고 Karabiner의 `select_input_source`로 직접 전환하�
 ## pi
 
 [pi](https://pi.dev) — 최소주의 코딩 에이전트. 설정은 `~/.pi/agent/settings.json`.
-**stow 하지 않는다** — 같은 디렉토리에 자격증명(`auth.json`)과 세션이 있다.
+**관리하지 않는다** — 같은 디렉토리에 자격증명(`auth.json`)과 세션이 있다.
 
 ```json
 { "defaultTools": ["read","bash","edit","write","grep","find","ls"] }
@@ -247,7 +253,7 @@ herdr 와 붙이는 방법은 [herdr 절의 pi 연동](#pi-연동) 참고.
 
 ## claude
 
-지침은 두 스코프로 나뉜다. **user** 는 `claude/.claude/CLAUDE.md` → stow → `~/.claude/CLAUDE.md`
+지침은 두 스코프로 나뉜다. **user** 는 `home/dot_claude/CLAUDE.md` → `chezmoi apply` → `~/.claude/CLAUDE.md`
 (모든 프로젝트에 적용), **project** 는 레포 루트의 [CLAUDE.md](CLAUDE.md) (이 레포에서만).
 project 가 뒤에 로드되므로 충돌하면 project 가 이긴다.
 
@@ -263,7 +269,7 @@ project 가 뒤에 로드되므로 충돌하면 project 가 이긴다.
 | | `history.jsonl`, `file-history/`, `shell-snapshots/` 등 캐시 |
 
 ```bash
-stow --no-folding claude          # 폴딩하면 projects/ 391M 가 레포로 들어온다
+chezmoi apply                     # 레포에 있는 파일만 쓰므로 projects/ (391M) 는 건드리지 않는다
 herdr integration install claude  # settings.json 의 SessionStart 훅이 이걸 참조한다
 ```
 
@@ -271,13 +277,13 @@ herdr integration install claude  # settings.json 의 SessionStart 훅이 이걸
 경로를 가리키지만, Claude Code 는 경고만 내고 정상적으로 뜬다.
 
 `~/.claude/skills/` 의 일부는 `~/.agents/skills/` 를 가리키는 심볼릭 링크다 — 별도 도구가
-관리하므로 이 패키지는 건드리지 않는다.
+관리하므로 chezmoi 는 건드리지 않는다.
 
 ## vimium
 
-Brave 의 [Vimium](https://github.com/philc/vimium) 링크 힌트 스타일. **stow 대상이 아니다** —
+Brave 의 [Vimium](https://github.com/philc/vimium) 링크 힌트 스타일. **chezmoi 대상이 아니다** —
 Vimium 설정은 파일이 아니라 브라우저 프로필의 `chrome.storage.sync`(LevelDB)에 들어가서
-심볼릭 링크를 걸 곳이 없다.
+배포할 파일이 없다.
 
 ```
 Vimium 옵션 페이지 → "CSS for link hints" 에 vimium/link-hints.css 붙여넣기 → Save
@@ -292,14 +298,18 @@ CSS 뿐이라 그것만 뒀다.
 
 ---
 
-## Restow (after changes)
+## Day to day
 
 ```bash
 cd ~/dotfiles
-stow -R <package>
-stow -R --no-folding herdr claude   # 이 둘은 폴딩 금지 — 옵션을 빠뜨리면 생성물이 딸려온다
+chezmoi diff     # 레포와 홈 디렉토리가 어디서 다른지
+chezmoi re-add   # 홈 디렉토리에서 고친 내용을 레포로 되가져온다
+chezmoi apply    # 레포의 상태를 홈 디렉토리에 쓴다
 ```
 
-`herdr` 와 `claude` 는 대상 디렉토리가 실제 디렉토리라 **파일별로** 링크가 걸린다.
-그래서 레포에 파일을 새로 추가하면 링크가 자동으로 생기지 않는다 — `stow -R` 을 다시 돌려야
-한다. 안 돌리면 그 파일만 조용히 없는 상태가 된다 (팝업이 `exit 127` 로 즉사하는 식).
+파일은 링크가 아니라 복사본이라, 홈 경로로 고친 내용은 저절로 레포에 닿지 않는다. 고친 뒤에는
+`chezmoi re-add` 를 돌린다. 도구가 스스로 다시 쓰는 파일 — Karabiner 의 `karabiner.json`,
+Claude Code 의 `settings.json` — 에서 특히 중요하다. `chezmoi apply` 전에 `chezmoi diff` 를
+먼저 보지 않으면 더 새로운 수정이 덮어써진다.
+
+`home/` 아래에 파일을 새로 추가하면 다음 `chezmoi apply` 가 만든다. 패키지별 단계는 없다.

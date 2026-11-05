@@ -134,26 +134,35 @@ mru_add() {
   } | head -n "$MRU_MAX" >"$tmp" && mv "$tmp" "$MRU_FILE"
 }
 
+# The zoxide hook only sees cd. Opening a workspace is not a cd, so bump the score manually
+# to keep frecency ranking "recently opened workspaces". Only call this once the workspace is open,
+# so a path that failed to open does not climb the list.
+mark_opened() {
+  zoxide add "$1"
+  mru_add "$1"
+}
+
 open_workspace() {
   local sel="$1" target existing id
   [[ -d $sel ]] || { fail "no such path: $sel"; return 1; }
   # On macOS /tmp is a link to /private/tmp, so normalize to the resolved absolute path.
   target="$(cd "$sel" && pwd -P)"
 
-  # The zoxide hook only sees cd. Opening a workspace is not a cd, so bump the score manually
-  # to keep frecency ranking "recently opened workspaces".
-  zoxide add "$target"
-  mru_add "$target"
-
   existing="$(ws_roots | awk -F'\t' -v p="$target" '$3 == p { print $1; exit }')"
 
   if [[ -n $existing ]]; then
     herdr workspace focus "$existing" >/dev/null
+    mark_opened "$target"
     return 0
   fi
 
   id="$(herdr workspace create --cwd "$target" --label "${target##*/}" --focus |
     jq -r '.result.workspace.workspace_id')"
+  if [[ -z $id || $id == null ]]; then
+    fail "workspace create failed: $target"
+    return 1
+  fi
+  mark_opened "$target"
   # A failure here is harmless — entry already happened. Picking the same path again just duplicates.
   herdr workspace report-metadata "$id" \
     --source workspace-jump --token "ws_root=$target" >/dev/null || true

@@ -1,5 +1,9 @@
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Apple Silicon installs Homebrew under /opt/homebrew, Intel under /usr/local.
+for brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  [[ -x $brew ]] && { eval "$($brew shellenv)"; break; }
+done
+unset brew
 
 # Added by Obsidian
 export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"

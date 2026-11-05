@@ -16,7 +16,10 @@ set -uo pipefail
 SELF="$(printf %q "$0")"
 # Glyph per agent status, so color is never the only signal. ANSI colors follow the terminal's
 # kanagawa palette. idle and done are both "ready for input" in herdr's docs, so they share one.
-LEGEND=$'\e[31m◉\e[0m blocked  \e[33m◐\e[0m working  \e[32m●\e[0m ready  \e[2m○\e[0m none   enter go   ^x close'
+# The status legend sits on a footer line of its own, so the border label (keys and count) stays
+# short enough for the popup's 60% width.
+STATUS_LEGEND=$'\e[32m●\e[0m ready  \e[33m◐\e[0m working  \e[31m◉\e[0m blocked  \e[2m○\e[0m none'
+LEGEND='enter go   ^x close'
 
 # fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
 # `list` is the full list, `plus` exists while the clone/create rows are shown.
@@ -95,28 +98,27 @@ fail() {
   read -rsn1
 }
 
-glyph() {
-  case "$1" in
-  ' ') printf ' ' ;;
-  blocked) printf '\e[31m◉\e[0m' ;;
-  working) printf '\e[33m◐\e[0m' ;;
-  idle | done) printf '\e[32m●\e[0m' ;;
-  *) printf '\e[2m○\e[0m' ;;
-  esac
-}
 
 # "<glyph>\t<label> <dim path>\t<kind>\t<absolute path>". The glyph has a field of its own so the
 # search (--nth=2) never matches it. ghq entries shrink to owner/repo —
 # ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
 render() {
-  local status="$1" p="$2" shown
+  local status="$1" p="$2" shown g
+  # A case, not a $(glyph) call: a subshell per row costs a fork, and the list has hundreds of rows.
+  case "$status" in
+  ' ') g=' ' ;;
+  blocked) g=$'\e[31m◉\e[0m' ;;
+  working) g=$'\e[33m◐\e[0m' ;;
+  idle | done) g=$'\e[32m●\e[0m' ;;
+  *) g=$'\e[2m○\e[0m' ;;
+  esac
   case "$p" in
   "$GHQ_ROOT"/*) shown="${p#"$GHQ_ROOT"/}"; shown="${shown#*/}" ;;
   "$HOME") shown='~' ;;
   "$HOME"/*) shown="~${p#"$HOME"}" ;;
   *) shown="$p" ;;
   esac
-  printf '%s\t%-20s \e[2m%s\e[0m\topen\t%s\n' "$(glyph "$status")" "${p##*/}" "$shown" "$p"
+  printf '%s\t%-20s \e[2m%s\e[0m\topen\t%s\n' "$g" "${p##*/}" "$shown" "$p"
 }
 
 # "<workspace_id>\t<focused>\t<root>\t<agent_status>" for every open workspace whose root is known.
@@ -251,6 +253,7 @@ while true; do
     --tiebreak=index \
     --layout=reverse --info=hidden --prompt='workspace > ' \
     --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
+    --footer=" $STATUS_LEGEND" \
     --height=100% \
     --bind "result:transform:$SELF --on-result" \
     --bind "change:transform:$SELF --on-change" \

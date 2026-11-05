@@ -24,15 +24,16 @@ leading `.`, and `executable_` sets the execute bit. `docs/` is English only.
 
 ## How it is used
 
-- **One project, one herdr workspace.** `alt+s` opens workspace-jump: pick from open workspaces,
-  recently opened ones, zoxide and ghq. The right pane shows that workspace's agents and what they
-  are doing; `→` lists them and `enter` jumps to one.
-- **The sidebar** shows each workspace's agent state (blocked · working · done · idle) and the task
+- Each project gets its own herdr workspace. `alt+s` opens workspace-jump, which picks from open
+  workspaces, recently opened ones, zoxide and ghq. The right pane shows that workspace's agents and
+  what they are doing; `→` lists them and `enter` jumps to one.
+- The sidebar shows each workspace's agent state (blocked · working · done · idle) and the task
   Claude is working on.
-- **macOS shortcuts reach herdr.** Ghostty turns `cmd+t` (new tab), `cmd+w` (close workspace) and
-  `ctrl+tab` (next tab) into herdr prefix (`ctrl+a`) sequences.
-- **Input source**: `caps lock` toggles Korean ↔ English, `right option` Korean ↔ Japanese.
-- **zsh** turns on only the runtimes that are installed. Each file in `rc.d/` does nothing when its
+- Ghostty turns the macOS shortcuts `cmd+t` (new tab), `cmd+w` (close workspace) and `ctrl+tab`
+  (next tab) into herdr prefix (`ctrl+a`) sequences.
+- `caps lock` toggles the input source between Korean and English, `right option` between Korean
+  and Japanese.
+- zsh turns on only the runtimes that are installed. Each file in `rc.d/` does nothing when its
   target is missing.
 
 ## New machine
@@ -45,15 +46,15 @@ chezmoi init --source ~/dotfiles --apply   # asks for git name and email once, i
 
 What chezmoi does not do, in order:
 
-1. **zsh** — clone Oh My Zsh and five plugins ([commands](docs/zsh.md#install)).
-2. **herdr integration** — `herdr integration install claude` (and `pi` if you use it). The
-   installer adds a second SessionStart hook to `~/.claude/settings.json`; check `chezmoi diff` and
-   revert it if it duplicates the existing one.
-3. **nvim** — plugins install on first launch. Run `:MasonInstall …` once
+1. Clone Oh My Zsh and five zsh plugins ([commands](docs/zsh.md#install)).
+2. Run `herdr integration install claude` (and `pi` if you use it). The installer adds a second
+   SessionStart hook to `~/.claude/settings.json`; check `chezmoi diff` and revert it if it
+   duplicates the existing one.
+3. Open nvim once so its plugins install, then run `:MasonInstall …`
    ([list](home/dot_config/nvim/REQUIREMENTS.md)).
-4. **Font** — install `MuxJK`, which Ghostty uses.
-5. **Permissions** — Input Monitoring for Karabiner, Accessibility for Hammerspoon.
-6. **Vimium** — paste `vimium/link-hints.css` into the options page ([vimium](docs/vimium.md)).
+4. Install the `MuxJK` font, which Ghostty uses.
+5. Grant Input Monitoring to Karabiner and Accessibility to Hammerspoon.
+6. Paste `vimium/link-hints.css` into Vimium's options page ([vimium](docs/vimium.md)).
 
 On Intel Macs the CLI tools come from [mise](https://mise.jdx.dev) instead of Homebrew; install
 mise first. Language runtimes are installed when a project needs them.

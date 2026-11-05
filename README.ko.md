@@ -24,15 +24,15 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 
 ## 쓰는 방식
 
-- **프로젝트 하나 = herdr workspace 하나.** `alt+s` 로 workspace-jump 를 띄워 열린 workspace·최근
+- 프로젝트마다 herdr workspace 를 하나씩 쓴다. `alt+s` 로 workspace-jump 를 띄워 열린 workspace·최근
   연 곳·zoxide·ghq 에서 골라 연다. 오른쪽 창에 그 workspace 의 agent 와 하는 일이 보이고, `→` 로
   agent 목록을 열어 `enter` 로 바로 이동한다.
-- **사이드바**에 workspace 별 agent 상태(blocked · working · done · idle)와 Claude 가 지금 하는
+- 사이드바에 workspace 별 agent 상태(blocked · working · done · idle)와 Claude 가 지금 하는
   작업 제목이 뜬다.
-- **macOS 단축키가 herdr 로 이어진다.** Ghostty 가 `cmd+t` 새 탭, `cmd+w` workspace 닫기,
-  `ctrl+tab` 다음 탭을 herdr prefix(`ctrl+a`) 시퀀스로 바꿔 보낸다.
-- **입력 소스**: `caps lock` 한↔영, `right option` 한↔일.
-- **zsh** 는 깔린 런타임만 켠다. `rc.d/` 의 각 파일은 대상이 없으면 아무 일도 하지 않는다.
+- Ghostty 가 macOS 단축키 `cmd+t` 새 탭, `cmd+w` workspace 닫기, `ctrl+tab` 다음 탭을 herdr
+  prefix(`ctrl+a`) 시퀀스로 바꿔 보낸다.
+- 입력 소스는 `caps lock` 이 한/영, `right option` 이 한/일을 전환한다.
+- zsh 는 깔린 런타임만 켠다. `rc.d/` 의 각 파일은 대상이 없으면 아무 일도 하지 않는다.
 
 ## 새 머신
 
@@ -44,17 +44,17 @@ chezmoi init --source ~/dotfiles --apply   # git 이름·이메일을 한 번 �
 
 chezmoi 가 하지 않는 일. 순서대로:
 
-1. **zsh** — Oh My Zsh 와 플러그인 5개를 clone 한다 ([명령](docs/zsh.md#install)).
-2. **herdr 통합** — `herdr integration install claude` (pi 를 쓰면 `pi` 도). 설치기가
+1. Oh My Zsh 와 zsh 플러그인 5개를 clone 한다 ([명령](docs/zsh.md#install)).
+2. `herdr integration install claude` 를 실행한다 (pi 를 쓰면 `pi` 도). 설치기가
    `~/.claude/settings.json` 에 SessionStart hook 을 하나 더 넣는다. `chezmoi diff` 로 보고
    기존 것과 겹치면 되돌린다.
-3. **nvim** — 첫 실행에 플러그인이 깔린다. Mason 도구는 `:MasonInstall …` 한 번
+3. nvim 을 한 번 열어 플러그인을 깔고, `:MasonInstall …` 을 실행한다
    ([목록](home/dot_config/nvim/REQUIREMENTS.md)).
-4. **폰트** — Ghostty 가 쓰는 `MuxJK` 를 설치한다.
-5. **권한** — Karabiner 에 입력 모니터링, Hammerspoon 에 손쉬운 사용.
-6. **Vimium** — `vimium/link-hints.css` 를 옵션 페이지에 붙여넣는다 ([vimium](docs/vimium.md)).
+4. Ghostty 가 쓰는 `MuxJK` 폰트를 설치한다.
+5. Karabiner 에 입력 모니터링, Hammerspoon 에 손쉬운 사용 권한을 준다.
+6. `vimium/link-hints.css` 를 Vimium 옵션 페이지에 붙여넣는다 ([vimium](docs/vimium.md)).
 
-Intel Mac 은 CLI 도구를 Homebrew 대신 [mise](https://mise.jdx.dev) 로 깐다 — mise 를 먼저
+Intel Mac 은 CLI 도구를 Homebrew 대신 [mise](https://mise.jdx.dev) 로 깐다. mise 를 먼저
 설치한다. 언어 런타임은 프로젝트가 필요로 할 때 깐다.
 
 ## 평소

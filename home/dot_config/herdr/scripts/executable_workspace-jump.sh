@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Project entry point (replaces sesh): focus the workspace for the picked path, create it if absent.
-# One list, no modes: open workspaces (●) first, by recency, then recently opened, then zoxide and ghq.
+# One list, no modes: open workspaces (marked with their agent status) first, by recency, then
+# recently opened, then zoxide and ghq.
 # When the query matches nothing, the list offers `+ clone <query>` and `+ create <query>` instead.
 #
 # Duplicates are judged by path, not label (~/work/api and ~/oss/api share a basename).
@@ -13,7 +14,9 @@
 set -uo pipefail
 
 SELF="$(printf %q "$0")"
-LEGEND='● open   enter go'
+# Glyph per agent status, so color is never the only signal. ANSI colors follow the terminal's
+# kanagawa palette. idle and done are both "ready for input" in herdr's docs, so they share one.
+LEGEND=$'\e[31m◉\e[0m blocked  \e[33m◐\e[0m working  \e[32m●\e[0m ready  \e[2m○\e[0m none   enter go'
 
 # fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
 # `list` is the full list, `plus` exists while the clone/create rows are shown.
@@ -41,7 +44,7 @@ on_change() {
 plus_rows() {
   local q
   read -r q <<<"$FZF_QUERY"
-  printf '+ clone %s\tget\t%s\n+ create %s\tcreate\t%s\n' "$q" "$q" "$q" "$q"
+  printf ' \t+ clone %s\tget\t%s\n \t+ create %s\tcreate\t%s\n' "$q" "$q" "$q" "$q"
 }
 
 case "${1:-}" in
@@ -70,38 +73,50 @@ fail() {
   read -rsn1
 }
 
-# "<marker> <label> <dim path>\t<kind>\t<absolute path>". ghq entries shrink to owner/repo —
+glyph() {
+  case "$1" in
+  ' ') printf ' ' ;;
+  blocked) printf '\e[31m◉\e[0m' ;;
+  working) printf '\e[33m◐\e[0m' ;;
+  idle | done) printf '\e[32m●\e[0m' ;;
+  *) printf '\e[2m○\e[0m' ;;
+  esac
+}
+
+# "<glyph>\t<label> <dim path>\t<kind>\t<absolute path>". The glyph has a field of its own so the
+# search (--nth=2) never matches it. ghq entries shrink to owner/repo —
 # ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
 render() {
-  local mark="$1" p="$2" shown
+  local status="$1" p="$2" shown
   case "$p" in
   "$GHQ_ROOT"/*) shown="${p#"$GHQ_ROOT"/}"; shown="${shown#*/}" ;;
   "$HOME") shown='~' ;;
   "$HOME"/*) shown="~${p#"$HOME"}" ;;
   *) shown="$p" ;;
   esac
-  printf '%s %-20s \e[2m%s\e[0m\topen\t%s\n' "$mark" "${p##*/}" "$shown" "$p"
+  printf '%s\t%-20s \e[2m%s\e[0m\topen\t%s\n' "$(glyph "$status")" "${p##*/}" "$shown" "$p"
 }
 
-# "<workspace_id>\t<focused>\t<root>" for every open workspace whose root is known.
+# "<workspace_id>\t<focused>\t<root>\t<agent_status>" for every open workspace whose root is known.
 ws_roots() {
-  local rows id focused by root
+  local rows id focused by root status
   # Every field is non-empty: read collapses adjacent tabs, which would shift an empty one away.
   rows="$(jq -rn --argjson w "$(herdr workspace list)" --argjson p "$(herdr pane list)" '
     (reduce ($p.result.panes[]?) as $x ({}; .[$x.workspace_id] //= $x.cwd)) as $cwd
     | $w.result.workspaces[]?
-    | if .tokens.ws_root then [.workspace_id, .focused, "token", .tokens.ws_root]
-      elif $cwd[.workspace_id] then [.workspace_id, .focused, "cwd", $cwd[.workspace_id]]
+    | (.agent_status // "unknown") as $st
+    | if .tokens.ws_root then [.workspace_id, .focused, "token", .tokens.ws_root, $st]
+      elif $cwd[.workspace_id] then [.workspace_id, .focused, "cwd", $cwd[.workspace_id], $st]
       else empty end
     | @tsv')" || return 0
-  while IFS=$'\t' read -r id focused by root; do
+  while IFS=$'\t' read -r id focused by root status; do
     [[ -n $root ]] || continue
     if [[ $by == cwd ]]; then
       root="$(cd "$root" 2>/dev/null && pwd -P)" || continue
       herdr workspace report-metadata "$id" \
         --source workspace-jump --token "ws_root=$root" >/dev/null || true
     fi
-    printf '%s\t%s\t%s\n' "$id" "$focused" "$root"
+    printf '%s\t%s\t%s\t%s\n' "$id" "$focused" "$root" "$status"
   done <<<"$rows"
 }
 
@@ -111,17 +126,18 @@ build_list() {
   local ws cur open
   ws="$(ws_roots)"
   cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
-  open="$(awk -F'\t' '$2 == "false" { print $3 }' <<<"$ws")"
+  open="$(awk -F'\t' '$2 == "false" { print $4 "\t" $3 }' <<<"$ws")"
   {
     # Open workspaces in MRU order; open ones never opened through here follow in sidebar order.
     [[ -n $open ]] && {
-      [[ -f $MRU_FILE ]] && grep -xF -f <(printf '%s\n' "$open") "$MRU_FILE"
+      [[ -f $MRU_FILE ]] && awk -F'\t' 'NR == FNR { st[$2] = $1; next } $0 in st { print st[$0] "\t" $0 }' \
+        <(printf '%s\n' "$open") "$MRU_FILE"
       printf '%s\n' "$open"
-    } | sed 's/^/●\t/'
+    }
     { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
   } | awk -F'\t' -v cur="$cur" '$2 != "" && $2 != cur && !seen[$2]++' |
-    while IFS=$'\t' read -r mark p; do
-      [[ -d $p ]] && render "$mark" "$p"
+    while IFS=$'\t' read -r status p; do
+      [[ -d $p ]] && render "$status" "$p"
     done
 }
 
@@ -197,7 +213,7 @@ while true; do
   build_list >"$WSJ_STATE/list"
 
   sel="$(fzf <"$WSJ_STATE/list" \
-    --delimiter='\t' --with-nth=1 --nth=1 --ansi \
+    --delimiter='\t' --with-nth=1,2 --nth=2 --tabstop=2 --ansi \
     --tiebreak=index \
     --layout=reverse --info=hidden --prompt='workspace > ' \
     --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
@@ -206,7 +222,7 @@ while true; do
     --bind "change:transform:$SELF --on-change")"
 
   [[ -n $sel ]] || exit 0 # ESC
-  IFS=$'\t' read -r _ kind arg <<<"$sel"
+  IFS=$'\t' read -r _ _ kind arg <<<"$sel"
   case "$kind" in
   open) open_workspace "$arg" && break ;;
   *) ghq_run_and_open "$kind" "$arg" && break ;;

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Reports the role an agent is playing to herdr as the pane token `role` ("<icon> <name>"),
 # so the sidebar and workspace-jump can show it. The role comes from the skill or subagent
-# about to run (PreToolUse on Skill and Agent); SessionStart clears it.
+# about to run (PreToolUse on Skill and Agent, or a typed /skill-name via UserPromptSubmit);
+# SessionStart clears it.
 # Icons are Nerd Font glyphs, which MuxJK already has.
 # Never blocks Claude: every path exits 0.
 
@@ -17,7 +18,11 @@ if [[ ${1:-} == clear ]]; then
   exit 0
 fi
 
-name="$(jq -r '.tool_input.skill // .tool_input.subagent_type // empty' 2>/dev/null)"
+if [[ ${1:-} == prompt ]]; then
+  name="$(jq -r '(.prompt // "") | select(startswith("/")) | ltrimstr("/") | split(" ")[0]' 2>/dev/null)"
+else
+  name="$(jq -r '.tool_input.skill // .tool_input.subagent_type // empty' 2>/dev/null)"
+fi
 # Plugin skills and agents are "plugin:name"; the table matches the name alone.
 case "${name##*:}" in
 grilling | spec | triage | ui-placement | goal | prototype | domain-modeling | codebase-design | Plan)

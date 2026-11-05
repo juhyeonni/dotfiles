@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Project entry point (replaces sesh): focus the workspace for the picked path, create it if absent.
-# One list, no modes: open workspaces (●) first, then recently opened, then zoxide and ghq.
+# One list, no modes: open workspaces (●) first, by recency, then recently opened, then zoxide and ghq.
 # When the query matches nothing, the list offers `+ clone <query>` and `+ create <query>` instead.
 #
 # Duplicates are judged by path, not label (~/work/api and ~/oss/api share a basename).
@@ -113,7 +113,11 @@ build_list() {
   cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
   open="$(awk -F'\t' '$2 == "false" { print $3 }' <<<"$ws")"
   {
-    [[ -n $open ]] && sed 's/^/●\t/' <<<"$open"
+    # Open workspaces in MRU order; open ones never opened through here follow in sidebar order.
+    [[ -n $open ]] && {
+      [[ -f $MRU_FILE ]] && grep -xF -f <(printf '%s\n' "$open") "$MRU_FILE"
+      printf '%s\n' "$open"
+    } | sed 's/^/●\t/'
     { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
   } | awk -F'\t' -v cur="$cur" '$2 != "" && $2 != cur && !seen[$2]++' |
     while IFS=$'\t' read -r mark p; do
@@ -189,6 +193,7 @@ while true; do
 
   sel="$(fzf <"$WSJ_STATE/list" \
     --delimiter='\t' --with-nth=1 --nth=1 --ansi \
+    --tiebreak=index \
     --layout=reverse --info=hidden --prompt='workspace > ' \
     --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
     --height=100% \

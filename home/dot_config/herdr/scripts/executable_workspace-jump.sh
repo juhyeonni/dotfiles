@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Project entry point (replaces sesh): focus the workspace for the picked path, create it if absent.
-# One list, no modes: open workspaces (marked with their agent status) first, by recency, then
+# One list: open workspaces (marked with their agent status) first, by recency, then
 # recently opened, then zoxide and ghq.
 # When the query matches nothing, the list offers `+ clone <query>` and `+ create <query>` instead.
 #
@@ -17,15 +17,22 @@ SELF="$(printf %q "$0")"
 # Glyph per agent status, so color is never the only signal. ANSI colors follow the terminal's
 # kanagawa palette. idle and done are both "ready for input" in herdr's docs, so they share one.
 # The status legend sits on a footer line of its own, so the border label (keys and count) stays
-# short enough for the popup's 60% width.
+# short enough for the list half of the popup.
 STATUS_LEGEND=$'\e[32m●\e[0m ready  \e[33m◐\e[0m working  \e[31m◉\e[0m blocked  \e[2m○\e[0m none'
-LEGEND='enter go   ^x close'
+LEGEND='enter go   → agents   ^x close'
+AGENT_LEGEND='enter go   ← back'
+PREVIEW_WINDOW='right,45%,border-left'
 
 # fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
 # `list` is the full list, `plus` exists while the clone/create rows are shown.
 # The rows replace the list with search disabled, so any query shows them; the next keystroke
 # restores the list and lets the search decide again.
+# `agents` holds the workspace path while the list shows that workspace's agents instead.
 on_result() {
+  if [[ -e $WSJ_STATE/agents ]]; then
+    echo "change-border-label: $AGENT_LEGEND   $FZF_MATCH_COUNT agents "
+    return
+  fi
   if [[ -e $WSJ_STATE/plus ]]; then
     echo "change-border-label: $LEGEND   0 projects "
     return
@@ -67,6 +74,29 @@ on_close() {
   echo "execute-silent(herdr workspace close $id >/dev/null)+reload($SELF --list)"
 }
 
+# → on an open workspace swaps the list for its agents; ← brings the workspaces back.
+# Anywhere else the arrows keep moving the query cursor.
+on_right() {
+  local glyph label p
+  IFS=$'\t' read -r glyph label _ p <<<"$1"
+  if [[ -e $WSJ_STATE/agents || -z ${glyph// /} ]]; then
+    echo forward-char
+    return
+  fi
+  printf '%s\n' "$p" >"$WSJ_STATE/agents"
+  read -r label _ <<<"$label"
+  echo "change-prompt($label > )+clear-query+change-preview-window(hidden)+reload:$SELF --agents $(printf %q "$p")"
+}
+
+on_left() {
+  if [[ ! -e $WSJ_STATE/agents ]]; then
+    echo backward-char
+    return
+  fi
+  rm -f "$WSJ_STATE/agents"
+  echo "change-prompt(workspace > )+clear-query+change-preview-window($PREVIEW_WINDOW)+reload:cat $(printf %q "$WSJ_STATE/list")"
+}
+
 confirm_close() {
   local key
   printf 'The agent in this workspace is working. Close it anyway? [y/N] '
@@ -78,8 +108,21 @@ confirm_close() {
 case "${1:-}" in
 --on-result) on_result; exit ;;
 --on-change) on_change; exit ;;
+--on-right) on_right "$2"; exit ;;
+--on-left) on_left; exit ;;
 --confirm-close) confirm_close "$2"; exit ;;
 --plus) plus_rows; exit ;;
+# The preview runs on every cursor move, so it reads the cache before any of the setup below.
+--preview)
+  [[ $2 == open ]] || exit 0
+  awk -F'\t' -v p="$3" '$1 == p { print $2 " " $3; n++ }
+    END { if (!n) print "\033[2mnot open\033[0m" }' "$WSJ_STATE/agents.tsv"
+  exit
+  ;;
+--agents)
+  awk -F'\t' -v p="$2" '$1 == p && $4 != "-" { print $2 "\t" $3 "\tagent\t" $4 }' "$WSJ_STATE/agents.tsv"
+  exit
+  ;;
 esac
 
 for cmd in zoxide fzf jq ghq herdr; do
@@ -99,19 +142,50 @@ fail() {
 }
 
 
-# "<glyph>\t<label> <dim path>\t<kind>\t<absolute path>". The glyph has a field of its own so the
-# search (--nth=2) never matches it. ghq entries shrink to owner/repo —
-# ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
-render() {
-  local status="$1" p="$2" shown g
-  # A case, not a $(glyph) call: a subshell per row costs a fork, and the list has hundreds of rows.
-  case "$status" in
+# Sets g instead of printing it: a $(glyph) subshell per row costs a fork, and the list has
+# hundreds of rows.
+set_glyph() {
+  case "$1" in
   ' ') g=' ' ;;
   blocked) g=$'\e[31m◉\e[0m' ;;
   working) g=$'\e[33m◐\e[0m' ;;
   idle | done) g=$'\e[32m●\e[0m' ;;
   *) g=$'\e[2m○\e[0m' ;;
   esac
+}
+
+# Writes WSJ_STATE/agents.tsv, "<root>\t<glyph>\t<tab>  <dim title>\t<pane_id>" per agent, so the
+# preview and the → list only read a file instead of querying herdr on every cursor move.
+# An open workspace without agents gets one "no agents" row with pane "-". The title is the task
+# Claude Code writes into its terminal title. Runs after ws_roots has stamped ws_root everywhere.
+# ponytail: a snapshot taken when the list is built; it goes stale while the popup stays open.
+write_agent_cache() {
+  local rows root status tab title pane g
+  rows="$(jq -rn --argjson w "$(herdr workspace list)" --argjson a "$(herdr agent list)" '
+    $w.result.workspaces[]? | select(.tokens.ws_root) | .tokens.ws_root as $r | .workspace_id as $id
+    | [$a.result.agents[]? | select(.workspace_id == $id)] as $ag
+    | if $ag == [] then [$r, "-", "-", "-", "-"] else
+        $ag[] | [$r, .agent_status // "unknown", (.tab_id | split(":")[1]),
+                 (.terminal_title_stripped // .agent // "-"), .pane_id]
+      end
+    | @tsv')" || return 0
+  while IFS=$'\t' read -r root status tab title pane; do
+    [[ -n $root ]] || continue
+    if [[ $pane == - ]]; then
+      printf '%s\t \t\e[2mno agents\e[0m\t-\n' "$root"
+      continue
+    fi
+    set_glyph "$status"
+    printf '%s\t%s\t%s  \e[2m%s\e[0m\t%s\n' "$root" "$g" "$tab" "$title" "$pane"
+  done <<<"$rows" >"$WSJ_STATE/agents.tsv"
+}
+
+# "<glyph>\t<label> <dim path>\t<kind>\t<absolute path>". The glyph has a field of its own so the
+# search (--nth=2) never matches it. ghq entries shrink to owner/repo —
+# ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
+render() {
+  local status="$1" p="$2" shown g
+  set_glyph "$status"
   case "$p" in
   "$GHQ_ROOT"/*) shown="${p#"$GHQ_ROOT"/}"; shown="${shown#*/}" ;;
   "$HOME") shown='~' ;;
@@ -149,6 +223,7 @@ ws_roots() {
 build_list() {
   local ws cur open
   ws="$(ws_roots)"
+  write_agent_cache
   cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
   open="$(awk -F'\t' '$2 == "false" { print $4 "\t" $3 }' <<<"$ws")"
   {
@@ -245,7 +320,7 @@ WSJ_STATE="$(mktemp -d)" || exit 1
 trap 'rm -rf "$WSJ_STATE"' EXIT
 
 while true; do
-  rm -f "$WSJ_STATE/plus"
+  rm -f "$WSJ_STATE/plus" "$WSJ_STATE/agents"
   build_list >"$WSJ_STATE/list"
 
   sel="$(fzf <"$WSJ_STATE/list" \
@@ -255,6 +330,9 @@ while true; do
     --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
     --footer=" $STATUS_LEGEND" \
     --height=100% \
+    --preview "$SELF --preview {3} {4}" --preview-window="$PREVIEW_WINDOW" \
+    --bind "right:transform:$SELF --on-right {}" \
+    --bind "left:transform:$SELF --on-left" \
     --bind "result:transform:$SELF --on-result" \
     --bind "change:transform:$SELF --on-change" \
     --bind "ctrl-x:transform:$SELF --on-close {}")"
@@ -263,6 +341,10 @@ while true; do
   IFS=$'\t' read -r _ _ kind arg <<<"$sel"
   case "$kind" in
   open) open_workspace "$arg" && break ;;
+  agent)
+    herdr agent focus "$arg" >/dev/null && mark_opened "$(<"$WSJ_STATE/agents")" && break
+    fail "agent focus failed: $arg"
+    ;;
   *) ghq_run_and_open "$kind" "$arg" && break ;;
   esac
 done

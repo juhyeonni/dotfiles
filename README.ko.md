@@ -10,7 +10,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 | 영역 | 도구 | 설정 (`home/` 아래) | 문서 |
 |------|------|---------------------|------|
 | 터미널 | Ghostty | `dot_config/ghostty/config` | — |
-| 멀티플렉서 | herdr (tmux 대신) | `dot_config/herdr/` | [herdr](docs/herdr.md) |
+| 멀티플렉서 | herdr | `dot_config/herdr/` | [herdr](docs/herdr.md) |
 | 셸 | zsh + Oh My Zsh | `dot_zshrc`, `dot_config/zsh/rc.d/` | [zsh](docs/zsh.md) |
 | 에디터 | nvim 0.12 (`vim.pack`) | `dot_config/nvim/` | [nvim](home/dot_config/nvim/README.md) |
 | 입력 소스 | Karabiner + Hammerspoon | `dot_config/karabiner/`, `dot_hammerspoon/` | [input-source](docs/input-source.md) |
@@ -39,7 +39,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 ```bash
 brew install chezmoi                       # Homebrew 먼저: https://brew.sh
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
-chezmoi init --source ~/dotfiles --apply   # git 이름·이메일을 한 번 묻고, Brewfile 설치
+chezmoi init --source ~/dotfiles --apply
 ```
 
 chezmoi 가 하지 않는 일. 순서대로:

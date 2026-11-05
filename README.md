@@ -10,7 +10,7 @@ Claude Code and pi run in herdr panes. Managed with [chezmoi](https://www.chezmo
 | Area | Tool | Config (under `home/`) | Docs |
 |------|------|------------------------|------|
 | Terminal | Ghostty | `dot_config/ghostty/config` | — |
-| Multiplexer | herdr (instead of tmux) | `dot_config/herdr/` | [herdr](docs/herdr.md) |
+| Multiplexer | herdr | `dot_config/herdr/` | [herdr](docs/herdr.md) |
 | Shell | zsh + Oh My Zsh | `dot_zshrc`, `dot_config/zsh/rc.d/` | [zsh](docs/zsh.md) |
 | Editor | nvim 0.12 (`vim.pack`) | `dot_config/nvim/` | [nvim](home/dot_config/nvim/README.md) |
 | Input source | Karabiner + Hammerspoon | `dot_config/karabiner/`, `dot_hammerspoon/` | [input-source](docs/input-source.md) |
@@ -41,7 +41,7 @@ leading `.`, and `executable_` sets the execute bit. `docs/` is English only.
 ```bash
 brew install chezmoi                       # Homebrew first: https://brew.sh
 git clone https://github.com/juhyeonni/dotfiles.git ~/dotfiles
-chezmoi init --source ~/dotfiles --apply   # asks for git name and email once, installs the Brewfile
+chezmoi init --source ~/dotfiles --apply
 ```
 
 What chezmoi does not do, in order:

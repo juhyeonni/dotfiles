@@ -30,6 +30,11 @@ require("snacks").setup({
 	picker = { enabled = true },
 	dashboard = {
 		enabled = true,
+		-- The default sections add "startup", which reads lazy.nvim stats and errors under vim.pack
+		sections = {
+			{ section = "header" },
+			{ section = "keys", gap = 1, padding = 1 },
+		},
 		preset = {
 			header = [[
        _       __                                 _

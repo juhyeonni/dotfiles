@@ -22,6 +22,7 @@ STATUS_LEGEND=$'\e[32m●\e[0m ready  \e[33m◐\e[0m working  \e[31m◉\e[0m blo
 LEGEND='enter go   → agents   ^x close'
 AGENT_LEGEND='enter go   ← back'
 PREVIEW_WINDOW='right,45%,border-left'
+CURRENT_MARK='  (current)'
 
 # fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
 # `list` is the full list, `plus` exists while the clone/create rows are shown.
@@ -184,7 +185,7 @@ write_agent_cache() {
 # search (--nth=2) never matches it. ghq entries shrink to owner/repo —
 # ~/.ghq/github.com/ is noise repeated on every row; the path stays searchable.
 render() {
-  local status="$1" p="$2" shown g
+  local status="$1" p="$2" mark="${3:-}" shown g
   set_glyph "$status"
   case "$p" in
   "$GHQ_ROOT"/*) shown="${p#"$GHQ_ROOT"/}"; shown="${shown#*/}" ;;
@@ -192,7 +193,7 @@ render() {
   "$HOME"/*) shown="~${p#"$HOME"}" ;;
   *) shown="$p" ;;
   esac
-  printf '%s\t%-20s \e[2m%s\e[0m\topen\t%s\n' "$g" "${p##*/}" "$shown" "$p"
+  printf '%s\t%-20s \e[2m%s%s\e[0m\topen\t%s\n' "$g" "${p##*/}" "$shown" "$mark" "$p"
 }
 
 # "<workspace_id>\t<focused>\t<root>\t<agent_status>" for every open workspace whose root is known.
@@ -218,8 +219,8 @@ ws_roots() {
   done <<<"$rows"
 }
 
-# The current workspace is dropped — no point jumping to where you already are, and dropping it
-# makes the top entry "the last place you were", which behaves like alt-tab.
+# The current workspace leads the list, marked, so its agents show in the preview too. The picker
+# starts the cursor on the row below it, "the last place you were", which behaves like alt-tab.
 build_list() {
   local ws cur open
   ws="$(ws_roots)"
@@ -227,6 +228,7 @@ build_list() {
   cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
   open="$(awk -F'\t' '$2 == "false" { print $4 "\t" $3 }' <<<"$ws")"
   {
+    awk -F'\t' '$2 == "true" { print $4 "\t" $3 }' <<<"$ws"
     # Open workspaces in MRU order; open ones never opened through here follow in sidebar order.
     [[ -n $open ]] && {
       [[ -f $MRU_FILE ]] && awk -F'\t' 'NR == FNR { st[$2] = $1; next } $0 in st { print st[$0] "\t" $0 }' \
@@ -234,9 +236,14 @@ build_list() {
       printf '%s\n' "$open"
     }
     { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
-  } | awk -F'\t' -v cur="$cur" '$2 != "" && $2 != cur && !seen[$2]++' |
+  } | awk -F'\t' '$2 != "" && !seen[$2]++' |
     while IFS=$'\t' read -r status p; do
-      [[ -d $p ]] && render "$status" "$p"
+      [[ -d $p ]] || continue
+      if [[ $p == "$cur" ]]; then
+        render "$status" "$p" "$CURRENT_MARK"
+      else
+        render "$status" "$p"
+      fi
     done
 }
 
@@ -322,8 +329,13 @@ trap 'rm -rf "$WSJ_STATE"' EXIT
 while true; do
   rm -f "$WSJ_STATE/plus" "$WSJ_STATE/agents"
   build_list >"$WSJ_STATE/list"
+  first=''
+  IFS= read -r first <"$WSJ_STATE/list"
+  start='start:pos(1)'
+  [[ $first == *"$CURRENT_MARK"* ]] && start='start:pos(2)'
 
   sel="$(fzf <"$WSJ_STATE/list" \
+    --bind "$start" \
     --delimiter='\t' --with-nth=1,2 --nth=2 --tabstop=2 --ansi \
     --tiebreak=index \
     --layout=reverse --info=hidden --prompt='workspace > ' \

@@ -16,7 +16,7 @@ set -uo pipefail
 SELF="$(printf %q "$0")"
 # Glyph per agent status, so color is never the only signal. ANSI colors follow the terminal's
 # kanagawa palette. idle and done are both "ready for input" in herdr's docs, so they share one.
-LEGEND=$'\e[31m◉\e[0m blocked  \e[33m◐\e[0m working  \e[32m●\e[0m ready  \e[2m○\e[0m none   enter go'
+LEGEND=$'\e[31m◉\e[0m blocked  \e[33m◐\e[0m working  \e[32m●\e[0m ready  \e[2m○\e[0m none   enter go   ^x close'
 
 # fzf callbacks. They run as `$0 --on-*` and talk to the picker through WSJ_STATE:
 # `list` is the full list, `plus` exists while the clone/create rows are shown.
@@ -47,9 +47,35 @@ plus_rows() {
   printf ' \t+ clone %s\tget\t%s\n \t+ create %s\tcreate\t%s\n' "$q" "$q" "$q" "$q"
 }
 
+# ctrl-x closes the open workspace under the cursor; rows not marked open do nothing.
+# The workspace is found through ws_roots, the same lookup that marks the row as open.
+# Only a working agent gets a prompt, which needs the terminal: execute, not execute-silent.
+on_close() {
+  local glyph p ws id
+  IFS=$'\t' read -r glyph _ _ p <<<"$1"
+  [[ -n ${glyph// /} ]] || return 0
+  ws="$(ws_roots | awk -F'\t' -v p="$p" '$3 == p { print $1 "\t" $4; exit }')"
+  [[ -n $ws ]] || return 0
+  id="$(printf %q "${ws%%$'\t'*}")"
+  if [[ ${ws#*$'\t'} == working ]]; then
+    echo "execute($SELF --confirm-close $id)+reload($SELF --list)"
+    return
+  fi
+  echo "execute-silent(herdr workspace close $id >/dev/null)+reload($SELF --list)"
+}
+
+confirm_close() {
+  local key
+  printf 'The agent in this workspace is working. Close it anyway? [y/N] '
+  read -rsn1 key
+  [[ $key == y ]] || return 0
+  herdr workspace close "$1" >/dev/null
+}
+
 case "${1:-}" in
 --on-result) on_result; exit ;;
 --on-change) on_change; exit ;;
+--confirm-close) confirm_close "$2"; exit ;;
 --plus) plus_rows; exit ;;
 esac
 
@@ -62,10 +88,6 @@ GHQ_ROOT="$(ghq root)"
 # which cancels out within a session and degrades to frequency order. Track "recently opened" here.
 MRU_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-mru"
 MRU_MAX=50
-
-export WSJ_STATE
-WSJ_STATE="$(mktemp -d)" || exit 1
-trap 'rm -rf "$WSJ_STATE"' EXIT
 
 # The popup closes the instant the command exits — give the user time to read the error.
 fail() {
@@ -208,6 +230,18 @@ ghq_run_and_open() {
   open_workspace "$new"
 }
 
+# Callbacks that need ws_roots or build_list, so they run once those are defined.
+# --list is the reload after ctrl-x. It rewrites the saved list too, so leaving the clone/create
+# rows does not bring back the closed workspace.
+case "${1:-}" in
+--on-close) on_close "$2"; exit ;;
+--list) build_list | tee "$WSJ_STATE/list"; exit ;;
+esac
+
+export WSJ_STATE
+WSJ_STATE="$(mktemp -d)" || exit 1
+trap 'rm -rf "$WSJ_STATE"' EXIT
+
 while true; do
   rm -f "$WSJ_STATE/plus"
   build_list >"$WSJ_STATE/list"
@@ -219,7 +253,8 @@ while true; do
     --border=bottom --border-label-pos=2:bottom --border-label=" $LEGEND " \
     --height=100% \
     --bind "result:transform:$SELF --on-result" \
-    --bind "change:transform:$SELF --on-change")"
+    --bind "change:transform:$SELF --on-change" \
+    --bind "ctrl-x:transform:$SELF --on-close {}")"
 
   [[ -n $sel ]] || exit 0 # ESC
   IFS=$'\t' read -r _ _ kind arg <<<"$sel"

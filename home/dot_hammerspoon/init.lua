@@ -1,6 +1,12 @@
 -- ==============================================
 --  Input Source
 -- ==============================================
+-- Karabiner turns physical keys into f19/f17 and this file switches the input source.
+-- Switching directly with Karabiner's select_input_source was tried and reverted: it rides a
+-- deprecated Carbon API that is unreliable for CJK sources with an input_mode_id (Korean,
+-- Japanese). Do not repeat it.
+-- https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to/select-input-source/
+-- https://github.com/pqrs-org/Karabiner-Elements/issues/1602
 local inputEnglish = "com.apple.keylayout.ABC"
 local inputKorean = "com.apple.inputmethod.Korean.2SetKorean"
 local inputJapanese = "com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese"

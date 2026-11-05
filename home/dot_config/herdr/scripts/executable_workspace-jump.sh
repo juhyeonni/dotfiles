@@ -5,9 +5,10 @@
 #
 # Duplicates are judged by path, not label (~/work/api and ~/oss/api share a basename).
 # A workspace object has no cwd, so the path is stamped into the ws_root metadata token at
-# creation time and looked up from there. A pane's cwd is not used because cd in the shell moves it.
-# Limitation: workspaces created outside this picker carry no token, so a path can be duplicated
-# and they are not marked as open.
+# creation time and looked up from there. A pane's cwd is only a fallback because cd moves it.
+# Tokens live only in the running server, and workspaces created outside this picker have none.
+# Those are matched by the cwd of their first pane (the one the workspace was created in), and
+# the token is stamped then so later lookups use it again.
 # No `set -e` here: failures are handled explicitly below instead.
 set -uo pipefail
 
@@ -82,14 +83,35 @@ render() {
   printf '%s %-20s \e[2m%s\e[0m\topen\t%s\n' "$mark" "${p##*/}" "$shown" "$p"
 }
 
+# "<workspace_id>\t<focused>\t<root>" for every open workspace whose root is known.
+ws_roots() {
+  local rows id focused by root
+  # Every field is non-empty: read collapses adjacent tabs, which would shift an empty one away.
+  rows="$(jq -rn --argjson w "$(herdr workspace list)" --argjson p "$(herdr pane list)" '
+    (reduce ($p.result.panes[]?) as $x ({}; .[$x.workspace_id] //= $x.cwd)) as $cwd
+    | $w.result.workspaces[]?
+    | if .tokens.ws_root then [.workspace_id, .focused, "token", .tokens.ws_root]
+      elif $cwd[.workspace_id] then [.workspace_id, .focused, "cwd", $cwd[.workspace_id]]
+      else empty end
+    | @tsv')" || return 0
+  while IFS=$'\t' read -r id focused by root; do
+    [[ -n $root ]] || continue
+    if [[ $by == cwd ]]; then
+      root="$(cd "$root" 2>/dev/null && pwd -P)" || continue
+      herdr workspace report-metadata "$id" \
+        --source workspace-jump --token "ws_root=$root" >/dev/null || true
+    fi
+    printf '%s\t%s\t%s\n' "$id" "$focused" "$root"
+  done <<<"$rows"
+}
+
 # The current workspace is dropped — no point jumping to where you already are, and dropping it
 # makes the top entry "the last place you were", which behaves like alt-tab.
 build_list() {
   local ws cur open
-  ws="$(herdr workspace list |
-    jq -r '.result.workspaces[]? | select(.tokens.ws_root) | "\(.focused)\t\(.tokens.ws_root)"')"
-  cur="$(awk -F'\t' '$1 == "true" { print $2 }' <<<"$ws")"
-  open="$(awk -F'\t' '$1 == "false" { print $2 }' <<<"$ws")"
+  ws="$(ws_roots)"
+  cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
+  open="$(awk -F'\t' '$2 == "false" { print $3 }' <<<"$ws")"
   {
     [[ -n $open ]] && sed 's/^/●\t/' <<<"$open"
     { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
@@ -123,9 +145,7 @@ open_workspace() {
   zoxide add "$target"
   mru_add "$target"
 
-  existing="$(herdr workspace list |
-    jq -r --arg p "$target" '.result.workspaces[]? | select(.tokens.ws_root == $p) | .workspace_id' |
-    head -n1)"
+  existing="$(ws_roots | awk -F'\t' -v p="$target" '$3 == p { print $1; exit }')"
 
   if [[ -n $existing ]]; then
     herdr workspace focus "$existing" >/dev/null

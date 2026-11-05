@@ -8,11 +8,18 @@ require("oil").setup({
 map("n", "<leader>fB", function()
 	require("oil").open(vim.fn.expand("%:p:h"))
 end, { desc = "Open file browser at the current buffer" })
+-- Sidebar tree for browsing; oil stays for bulk renames and moves
+map("n", "<leader>e", function()
+	Snacks.explorer({ hidden = true })
+end, { desc = "Explorer sidebar" })
 
 -- Pickers (snacks)
 map("n", ";f", function()
 	Snacks.picker.files({ hidden = true })
 end, { desc = "Files in cwd, respects .gitignore" })
+map("n", "<leader><leader>", function()
+	Snacks.picker.files({ hidden = true })
+end, { desc = "Files in cwd" })
 map("n", ";r", function()
 	Snacks.picker.grep({ hidden = true })
 end, { desc = "Live grep in cwd" })

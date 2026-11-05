@@ -7,3 +7,8 @@ Brewfile
 
 # per-machine nvim settings stay out of the repo, so a later `chezmoi add` must not deploy it
 .config/nvim/lua/plugins/local.lua
+
+# mise replaces the CLI brews only on Intel, where Homebrew has no prebuilt bottles
+{{ if ne .chezmoi.arch "amd64" }}
+.config/mise
+{{ end }}

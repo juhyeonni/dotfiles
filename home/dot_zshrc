@@ -2,6 +2,9 @@
 # PATH
 # ====================
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# Intel Macs get the CLI tools from mise (see Brewfile). Activate it before Oh My Zsh so plugins
+# like fzf, and the ghq/zoxide setup below, find them.
+command -v mise &> /dev/null && eval "$(mise activate zsh)"
 
 # ====================
 # Oh My Zsh

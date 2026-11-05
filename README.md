@@ -57,7 +57,9 @@ chezmoi init --source ~/dotfiles --apply
 
 `chezmoi init` asks once for the git name and email (they fill `~/.gitconfig`). `apply` then runs
 `brew bundle` on `home/Brewfile`; it runs again only when the Brewfile changes. Packages missing
-from the Brewfile are never removed.
+from the Brewfile are never removed. On Intel Macs, where Homebrew has no prebuilt bottles, the
+CLI tools come from [mise](https://mise.jdx.dev) instead (`home/dot_config/mise/config.toml`);
+install mise first.
 
 chezmoi copies files; it does not link them. Extra per-program installs (plugins and so on) are
 covered in the sections below, and the day-to-day commands are in [Day to day](#day-to-day).

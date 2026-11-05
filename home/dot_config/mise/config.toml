@@ -1,0 +1,19 @@
+# Intel Macs only (see .chezmoiignore). Homebrew ships no x86_64 bottles, so every brew
+# install or upgrade there builds from source; mise pulls prebuilt release binaries instead.
+# Keep this list in sync with the CLI brews that the Brewfile skips on Intel.
+[tools]
+bat = "latest"
+chezmoi = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+gh = "latest"
+ghq = "latest"
+git-lfs = "latest"
+herdr = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+ripgrep = "latest"
+tree-sitter = "latest"
+zoxide = "latest"

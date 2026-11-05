@@ -54,7 +54,8 @@ chezmoi init --source ~/dotfiles --apply
 
 `chezmoi init` 이 git 이름과 이메일을 한 번 묻고, 그 값이 `~/.gitconfig` 에 들어간다. 이어서
 `apply` 가 `home/Brewfile` 로 `brew bundle` 을 실행하며, Brewfile 이 바뀔 때만 다시 실행된다.
-Brewfile 에 없는 패키지는 지우지 않는다.
+Brewfile 에 없는 패키지는 지우지 않는다. Homebrew 가 prebuilt bottle 을 주지 않는 Intel Mac 에서는
+CLI 도구를 [mise](https://mise.jdx.dev) 로 설치한다(`home/dot_config/mise/config.toml`). mise 를 먼저 설치해 둔다.
 
 chezmoi 는 파일을 링크하지 않고 복사한다. 각 프로그램의 추가 설치(플러그인 등)는 아래 섹션을,
 평소에 쓰는 명령은 [Day to day](#day-to-day) 를 참고.

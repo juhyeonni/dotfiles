@@ -175,29 +175,46 @@ set_glyph() {
   esac
 }
 
-# Writes WSJ_STATE/agents.tsv, "<root>\t<glyph>\t<tab>  <dim title>\t<pane_id>" per agent, so the
+# Sets wt to where the agent works: "main" for the main checkout, "⎇ <name>" for a linked
+# worktree (its git dir differs from the common one), empty outside git.
+set_worktree() {
+  local top gd cd
+  wt=''
+  { read -r top && read -r gd && read -r cd; } < <(git -C "$1" rev-parse --path-format=absolute \
+    --show-toplevel --git-dir --git-common-dir 2>/dev/null) || return 0
+  if [[ $gd == "$cd" ]]; then
+    wt='main  '
+  else
+    wt=$'\e[36m⎇ '"${top##*/}"$'\e[0m  '
+  fi
+}
+
+# Writes WSJ_STATE/agents.tsv, "<root>\t<glyph>\t<tab>  <role>  <worktree>  <dim title>\t<pane_id>" per agent, so the
 # preview and the → list only read a file instead of querying herdr on every cursor move.
 # An open workspace without agents gets one "no agents" row with pane "-". The title is the task
 # Claude Code writes into its terminal title. Runs after ws_roots has stamped ws_root everywhere.
 # ponytail: a snapshot taken when the list is built; it goes stale while the popup stays open.
 write_agent_cache() {
-  local rows root status tab title pane g
+  local rows root status tab title pane cwd role g wt
   rows="$(jq -rn --argjson w "$(herdr workspace list)" --argjson a "$(herdr agent list)" '
     $w.result.workspaces[]? | select(.tokens.ws_root) | .tokens.ws_root as $r | .workspace_id as $id
     | [$a.result.agents[]? | select(.workspace_id == $id)] as $ag
-    | if $ag == [] then [$r, "-", "-", "-", "-"] else
+    | if $ag == [] then [$r, "-", "-", "-", "-", "-", "-"] else
         $ag[] | [$r, .agent_status // "unknown", (.tab_id | split(":")[1]),
-                 (.terminal_title_stripped // .agent // "-"), .pane_id]
+                 (.terminal_title_stripped // .agent // "-"), .pane_id, (.cwd // "-"), (.tokens.role // "-")]
       end
     | @tsv')" || return 0
-  while IFS=$'\t' read -r root status tab title pane; do
+  while IFS=$'\t' read -r root status tab title pane cwd role; do
     [[ -n $root ]] || continue
     if [[ $pane == - ]]; then
       printf '%s\t \t\e[2mno agents\e[0m\t-\n' "$root"
       continue
     fi
     set_glyph "$status"
-    printf '%s\t%s\t%s  \e[2m%s\e[0m\t%s\n' "$root" "$g" "$tab" "$title" "$pane"
+    set_worktree "$cwd"
+    # role is set by ~/.claude/hooks/agent-role.sh.
+    [[ $role == - ]] && role='' || role=$'\e[35m'"$role"$'\e[0m  '
+    printf '%s\t%s\t%s  %s%s\e[2m%s\e[0m\t%s\n' "$root" "$g" "$tab" "$role" "$wt" "$title" "$pane"
   done <<<"$rows" >"$WSJ_STATE/agents.tsv"
 }
 

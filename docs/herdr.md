@@ -42,7 +42,8 @@ Ghostty sends `cmd+t` (new tab), `cmd+w` (close workspace), `ctrl+tab` / `ctrl+s
   so `enter` right away goes back to it.
 - Rows stream in, so the popup opens at once. The ghq repo list comes from
   `~/.cache/herdr/ghq-list`, refreshed in the background on every launch.
-- The right pane shows the agents of the workspace under the cursor: status, tab and task.
+- The right pane shows the agents of the workspace under the cursor: status, tab, role, worktree
+  (`main` for the main checkout, `⎇ <name>` for a linked one) and task.
 
 | Key | Action |
 |-----|--------|
@@ -59,6 +60,13 @@ ghq repos are labelled `owner/repo`.
 Claude agents show the workspace and tab, then the task from Claude Code's terminal title
 (`[ui.sidebar.agents.rows_by_agent]`). Agents are ordered by workspace, the default
 `agent_panel_sort = "spaces"`.
+
+## Agent roles
+
+`~/.claude/hooks/agent-role.sh` runs before each skill or subagent and reports the role it plays
+as the pane token `role`: plan, research, build or review, each with a Nerd Font icon. The
+skill-to-role table lives in that script; unlisted skills leave the role as it was, and a new
+session clears it. The sidebar shows it as `$role`, workspace-jump next to the tab.
 
 ## Agent integration
 

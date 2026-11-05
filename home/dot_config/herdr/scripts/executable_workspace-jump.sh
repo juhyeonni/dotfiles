@@ -130,7 +130,27 @@ for cmd in zoxide fzf jq ghq herdr; do
   command -v "$cmd" >/dev/null || { echo "required command not found: $cmd" >&2; exit 1; }
 done
 
-GHQ_ROOT="$(ghq root)"
+# `ghq root` and `ghq list` cost ~65 ms each. The root comes from git config instead, and the
+# repo list from a cache that a background job refreshes on every launch for the next one.
+GHQ_ROOT="$(git config --get ghq.root)"
+GHQ_ROOT="${GHQ_ROOT/#\~/$HOME}"
+[[ -n $GHQ_ROOT ]] || GHQ_ROOT="$(ghq root)"
+GHQ_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/herdr/ghq-list"
+
+ghq_list() {
+  [[ -s $GHQ_CACHE ]] && { cat "$GHQ_CACHE"; return; }
+  mkdir -p "${GHQ_CACHE%/*}"
+  ghq list -p | tee "$GHQ_CACHE"
+}
+
+# Ignores SIGHUP so closing the popup does not kill the refresh halfway.
+refresh_ghq_cache() {
+  local tmp
+  trap '' HUP
+  mkdir -p "${GHQ_CACHE%/*}"
+  tmp="$(mktemp)" || return 0
+  ghq list -p >"$tmp" && mv "$tmp" "$GHQ_CACHE"
+}
 # zoxide exposes no last-access time, and its score is rank (cumulative hits) x a recency multiplier,
 # which cancels out within a session and degrades to frequency order. Track "recently opened" here.
 MRU_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/herdr/workspace-mru"
@@ -219,8 +239,9 @@ ws_roots() {
   done <<<"$rows"
 }
 
-# The current workspace leads the list, marked, so its agents show in the preview too. The picker
-# starts the cursor on the row below it, "the last place you were", which behaves like alt-tab.
+# The current workspace closes the open group, marked, so its agents show in the preview too.
+# fzf shows rows as they stream in and cannot start the cursor below a row that has not arrived,
+# so the top row stays "the last place you were", which behaves like alt-tab.
 build_list() {
   local ws cur open
   ws="$(ws_roots)"
@@ -228,15 +249,15 @@ build_list() {
   cur="$(awk -F'\t' '$2 == "true" { print $3 }' <<<"$ws")"
   open="$(awk -F'\t' '$2 == "false" { print $4 "\t" $3 }' <<<"$ws")"
   {
-    awk -F'\t' '$2 == "true" { print $4 "\t" $3 }' <<<"$ws"
     # Open workspaces in MRU order; open ones never opened through here follow in sidebar order.
     [[ -n $open ]] && {
       [[ -f $MRU_FILE ]] && awk -F'\t' 'NR == FNR { st[$2] = $1; next } $0 in st { print st[$0] "\t" $0 }' \
         <(printf '%s\n' "$open") "$MRU_FILE"
       printf '%s\n' "$open"
     }
-    { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq list -p; } | sed 's/^/ \t/'
-  } | awk -F'\t' '$2 != "" && !seen[$2]++' |
+    awk -F'\t' '$2 == "true" { print $4 "\t" $3 }' <<<"$ws"
+    { [[ -f $MRU_FILE ]] && cat "$MRU_FILE"; zoxide query -l; ghq_list; } | sed 's/^/ \t/'
+  } | awk -F'\t' '$2 != "" && !seen[$2]++ { print; fflush() }' |
     while IFS=$'\t' read -r status p; do
       [[ -d $p ]] || continue
       if [[ $p == "$cur" ]]; then
@@ -325,17 +346,12 @@ esac
 export WSJ_STATE
 WSJ_STATE="$(mktemp -d)" || exit 1
 trap 'rm -rf "$WSJ_STATE"' EXIT
+refresh_ghq_cache </dev/null >/dev/null 2>&1 &
 
 while true; do
   rm -f "$WSJ_STATE/plus" "$WSJ_STATE/agents"
-  build_list >"$WSJ_STATE/list"
-  first=''
-  IFS= read -r first <"$WSJ_STATE/list"
-  start='start:pos(1)'
-  [[ $first == *"$CURRENT_MARK"* ]] && start='start:pos(2)'
-
-  sel="$(fzf <"$WSJ_STATE/list" \
-    --bind "$start" \
+  # Streamed, so the popup opens at once and later rows (zoxide, ghq) fill in behind the first.
+  sel="$(build_list | tee "$WSJ_STATE/list" | fzf \
     --delimiter='\t' --with-nth=1,2 --nth=2 --tabstop=2 --ansi \
     --tiebreak=index \
     --layout=reverse --info=hidden --prompt='workspace > ' \

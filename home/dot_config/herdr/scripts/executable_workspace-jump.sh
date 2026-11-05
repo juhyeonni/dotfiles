@@ -147,7 +147,7 @@ mark_opened() {
 }
 
 open_workspace() {
-  local sel="$1" target existing id
+  local sel="$1" target existing id label
   [[ -d $sel ]] || { fail "no such path: $sel"; return 1; }
   # On macOS /tmp is a link to /private/tmp, so normalize to the resolved absolute path.
   target="$(cd "$sel" && pwd -P)"
@@ -160,7 +160,12 @@ open_workspace() {
     return 0
   fi
 
-  id="$(herdr workspace create --cwd "$target" --label "${target##*/}" --focus |
+  # ghq repos are labelled owner/repo, like the dim path in render(), so same-named repos stay
+  # apart in the sidebar. Other paths have no owner, so they keep the basename.
+  label="${target##*/}"
+  [[ $target == "$GHQ_ROOT"/*/*/* ]] && { label="${target#"$GHQ_ROOT"/}"; label="${label#*/}"; }
+
+  id="$(herdr workspace create --cwd "$target" --label "$label" --focus |
     jq -r '.result.workspace.workspace_id')"
   if [[ -z $id || $id == null ]]; then
     fail "workspace create failed: $target"

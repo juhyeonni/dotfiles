@@ -67,6 +67,8 @@ keybind = cmd+shift+r=reload_config
 # Keep the prefix working while the Korean IME is active: ignore layout/IME and match the
 # physical key position (W3C KeyA)
 keybind = ctrl+key_a=text:\x01
+# Same for alt+s (herdr workspace-jump): ESC s is how a terminal spells alt+s.
+keybind = alt+key_s=text:\x1bs
 
 # herdr integration (\x01 = ctrl+a = herdr prefix)
 # cmd+w maps to close_workspace because close_tab has no confirmation prompt and would

@@ -39,8 +39,11 @@ end
 -- ==============================================
 --  Korean IME handling for Ghostty keys
 -- ==============================================
--- Force a switch to English on the keys below so herdr bindings still work while the
--- Korean IME is active. The event itself passes through untouched (return false).
+-- Force a switch to English on the keys below, so typing after them (the herdr prefix, the
+-- workspace-jump query) is English. Ghostty already sends the keys themselves by physical
+-- position (ctrl+key_a, alt+key_s), so they work under the Korean IME without this.
+-- The event passes through untouched (return false), and the switch runs on the next run loop
+-- turn: switching inside the tap holds the keystroke until the input source has changed.
 --
 -- herdr's switch_ascii_input_source_in_prefix only switches to ASCII *inside* prefix mode,
 -- so it covers neither entering the prefix (ctrl+a) nor prefix-less direct bindings (alt+s).
@@ -58,9 +61,14 @@ local ghostty_force_english = hs.eventtap.new({ hs.eventtap.event.types.keyDown 
 	for _, k in ipairs(forceEnglishKeys) do
 		-- This runs on every keystroke, so compare the cheap key first and only query the app on a match.
 		if code == k.code and flags:containExactly(k.mods) then
-			if hs.application.frontmostApplication():bundleID() == GHOSTTY_BUNDLE_ID then
-				hs.keycodes.currentSourceID(inputEnglish)
-			end
+			hs.timer.doAfter(0, function()
+				if hs.application.frontmostApplication():bundleID() ~= GHOSTTY_BUNDLE_ID then
+					return
+				end
+				if hs.keycodes.currentSourceID() ~= inputEnglish then
+					hs.keycodes.currentSourceID(inputEnglish)
+				end
+			end)
 			break
 		end
 	end

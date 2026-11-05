@@ -14,8 +14,9 @@ Hammerspoon (`home/dot_hammerspoon/init.lua`) switches the input source on that 
   under `devices[]`. Change both.
 - One keyboard (vendor 1133, product 49312) has `ignore: true` in `devices[]`, so no Karabiner rule
   applies to it.
-- In Ghostty, Hammerspoon's `forceEnglishKeys` switches to English on `ctrl+a` (herdr prefix) and
-  `alt+s` (workspace-jump), so they work while the Korean IME is on.
+- `ctrl+a` (herdr prefix) and `alt+s` (workspace-jump) work under the Korean IME: Ghostty sends
+  them by physical key. Hammerspoon's `forceEnglishKeys` then switches to English in Ghostty, so
+  what you type next is English.
 - Karabiner needs Input Monitoring and Hammerspoon needs Accessibility, both granted by hand.
 - Karabiner rewrites `karabiner.json` itself. After changing settings in its UI, run
   `chezmoi re-add`.

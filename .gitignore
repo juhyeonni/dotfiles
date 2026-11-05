@@ -13,3 +13,7 @@ home/dot_config/karabiner/assets/
 
 # Per-machine nvim settings
 home/dot_config/nvim/lua/plugins/local.lua
+
+# Local agent tooling
+/.claude/
+/.agents/

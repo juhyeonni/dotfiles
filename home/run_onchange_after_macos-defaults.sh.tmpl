@@ -1,0 +1,39 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Keyboard, text input, Dock and trackpad defaults. chezmoi reruns this only when the script changes.
+# Key repeat and the fn key apply to apps launched afterwards; log out once for everything to pick them up.
+set -e
+
+# Text input: no autocorrect or smart punctuation, which break code and commands typed into any text field.
+defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false
+defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false
+defaults write -g NSAutomaticDashSubstitutionEnabled -bool false
+defaults write -g NSAutomaticCapitalizationEnabled -bool false
+defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool false
+
+# Holding a key repeats it (vim motions) instead of opening the accent picker; fast repeat, short delay.
+defaults write -g ApplePressAndHoldEnabled -bool false
+defaults write -g KeyRepeat -int 2
+defaults write -g InitialKeyRepeat -int 15
+
+# F1-F12 act as function keys; hold fn for brightness and volume.
+defaults write -g com.apple.keyboard.fnState -bool true
+
+# Tap to click, for the built-in and Bluetooth trackpads.
+defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+defaults -currentHost write -g com.apple.mouse.tapBehavior -int 1
+
+# No .DS_Store files on network shares and USB drives.
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+# Dock: auto-hide, 45pt icons, no recent apps; bottom-right hot corner opens Quick Note (14).
+d=com.apple.dock
+defaults write $d autohide -bool true
+defaults write $d tilesize -int 45
+defaults write $d show-recents -bool false
+defaults write $d wvous-br-corner -int 14
+defaults write $d wvous-br-modifier -int 0
+killall Dock
+{{ end -}}

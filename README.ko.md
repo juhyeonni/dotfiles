@@ -19,6 +19,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 | 패키지 | Homebrew (Intel 은 mise) | `Brewfile`, `dot_config/mise/` | — |
 | 브라우저 | Vimium 링크 힌트 CSS | `vimium/` (repo 루트, 배포 안 함) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
+| macOS | `defaults write` (키보드, 텍스트 입력, Dock, 트랙패드) | `run_onchange_after_macos-defaults.sh.tmpl` | — |
 | 런처 | Alfred 5 | `alfred/` (repo 루트, Alfred sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
 | 창 배치 | Magnet | `magnet/` (repo 루트, `run_onchange_after_magnet-settings.sh.tmpl` 이 가져옴) | — |
 

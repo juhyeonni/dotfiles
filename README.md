@@ -19,6 +19,7 @@ Claude Code and pi run in herdr panes. Managed with [chezmoi](https://www.chezmo
 | Packages | Homebrew (mise on Intel) | `Brewfile`, `dot_config/mise/` | — |
 | Browser | Vimium link hint CSS | `vimium/` (repo root, not deployed) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
+| macOS | `defaults write` (keyboard, text input, Dock, trackpad) | `run_onchange_after_macos-defaults.sh.tmpl` | — |
 | Launcher | Alfred 5 | `alfred/` (repo root, Alfred's sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
 | Windows | Magnet | `magnet/` (repo root, imported by `run_onchange_after_magnet-settings.sh.tmpl`) | — |
 

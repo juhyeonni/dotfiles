@@ -22,6 +22,14 @@ end
 cask "ghostty"
 cask "karabiner-elements"
 cask "hammerspoon"
+cask "alfred"
+cask "jordanbaird-ice@beta" # the beta runs on macOS 27; the stable cask is older
+cask "linearmouse"
+cask "keka"
+cask "iina"
+
+# Charge limiting only matters on Macs with a battery
+cask "aldente" if `pmset -g batt`.include?("InternalBattery")
 
 # App Store apps need `mas` and a signed-in App Store account
 mas "Magnet", id: 441258766

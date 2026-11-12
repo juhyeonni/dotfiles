@@ -58,13 +58,15 @@ What chezmoi does not do, in order:
    duplicates the existing one.
 3. Open nvim once so its plugins install, then run `:MasonInstall …`
    ([list](home/dot_config/nvim/REQUIREMENTS.md)).
-4. Install the `MuxJK` font, which Ghostty uses.
-5. Grant Input Monitoring to Karabiner and Accessibility to Hammerspoon and Alfred (snippet
+4. Grant Input Monitoring to Karabiner and Accessibility to Hammerspoon and Alfred (snippet
    expansion needs it).
-6. Paste `vimium/link-hints.css` into Vimium's options page ([vimium](docs/vimium.md)).
-7. Open Alfred once, then run `chezmoi apply` again. `run_after_alfred-sync-folder.sh` points
+5. Paste `vimium/link-hints.css` into Vimium's options page ([vimium](docs/vimium.md)).
+6. Open Alfred once, then run `chezmoi apply` again. `run_after_alfred-sync-folder.sh` points
    Alfred's sync folder at `alfred/`; Alfred writes there directly, so chezmoi does not deploy it
    and changes land in the repo as you make them.
+
+The MuxJK font that Ghostty uses comes from [juhyeonni/MuxJK](https://github.com/juhyeonni/MuxJK)
+through `.chezmoiexternal.toml.tmpl`; bump the tag there to update it.
 
 On Intel Macs the CLI tools come from [mise](https://mise.jdx.dev) instead of Homebrew; install
 mise first. Language runtimes are installed when a project needs them.

@@ -56,13 +56,15 @@ chezmoi 가 하지 않는 일. 순서대로:
    기존 것과 겹치면 되돌린다.
 3. nvim 을 한 번 열어 플러그인을 깔고, `:MasonInstall …` 을 실행한다
    ([목록](home/dot_config/nvim/REQUIREMENTS.md)).
-4. Ghostty 가 쓰는 `MuxJK` 폰트를 설치한다.
-5. Karabiner 에 입력 모니터링, Hammerspoon 과 Alfred 에 손쉬운 사용 권한을 준다 (Alfred 스니펫 자동 입력에
+4. Karabiner 에 입력 모니터링, Hammerspoon 과 Alfred 에 손쉬운 사용 권한을 준다 (Alfred 스니펫 자동 입력에
    필요).
-6. `vimium/link-hints.css` 를 Vimium 옵션 페이지에 붙여넣는다 ([vimium](docs/vimium.md)).
-7. Alfred 를 한 번 연 뒤 `chezmoi apply` 를 다시 실행한다. `run_after_alfred-sync-folder.sh` 가
+5. `vimium/link-hints.css` 를 Vimium 옵션 페이지에 붙여넣는다 ([vimium](docs/vimium.md)).
+6. Alfred 를 한 번 연 뒤 `chezmoi apply` 를 다시 실행한다. `run_after_alfred-sync-folder.sh` 가
    Alfred sync folder 를 `alfred/` 로 지정한다. Alfred 가 그 폴더에 직접 쓰므로 chezmoi 는 배포하지
    않고, 바꾼 설정이 바로 repo 에 남는다.
+
+Ghostty 가 쓰는 MuxJK 폰트는 `.chezmoiexternal.toml.tmpl` 이 [juhyeonni/MuxJK](https://github.com/juhyeonni/MuxJK)
+에서 받는다. 갱신하려면 거기서 태그를 올린다.
 
 Intel Mac 은 CLI 도구를 Homebrew 대신 [mise](https://mise.jdx.dev) 로 깐다. mise 를 먼저
 설치한다. 언어 런타임은 프로젝트가 필요로 할 때 깐다.

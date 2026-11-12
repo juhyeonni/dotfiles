@@ -1,0 +1,8 @@
+{{- if eq .chezmoi.os "darwin" }}
+# MuxJK, the Ghostty font, from its own repo. Pinned to a tag: bump it to update.
+{{- range list "Regular" "Bold" "Italic" "BoldItalic" }}
+["Library/Fonts/MuxJK-{{ . }}.ttf"]
+    type = "file"
+    url = "https://github.com/juhyeonni/MuxJK/raw/v0.1.0/fonts/MuxJK-{{ . }}.ttf"
+{{- end }}
+{{- end }}

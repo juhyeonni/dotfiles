@@ -36,7 +36,7 @@
 	<key>createdby</key>
 	<string>juhyeonlee</string>
 	<key>description</key>
-	<string>Toggle caffeinate -is (no timeout)</string>
+	<string>Show and toggle caffeinate -is, optionally for a duration (30, 90m, 2h)</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
@@ -46,23 +46,70 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
 				<key>argumenttype</key>
-				<integer>2</integer>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
 				<key>keyword</key>
 				<string>caffeinate</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>q=$1
+state="${alfred_workflow_data:-$HOME/Library/Caches/caffeinate-alfred}/end"
+item() { printf '{"title":"%s","subtitle":"%s","arg":"%s","valid":%s}' "$1" "$2" "$3" "${4:-true}"; }
+
+if pgrep -qf '^/usr/bin/caffeinate -is( -t [0-9]+)?$'; then
+  end=$(cat "$state" 2&gt;/dev/null)
+  if [ -n "$end" ]; then status="Caffeinate is ON until $(date -r "$end" +%H:%M)"; else status="Caffeinate is ON (no timeout)"; fi
+  [ -z "$q" ] &amp;&amp; { printf '{"items":[%s]}' "$(item "$status" "Enter to turn off" off)"; exit; }
+else
+  status="Caffeinate is OFF"
+  [ -z "$q" ] &amp;&amp; { printf '{"items":[%s]}' "$(item "$status" "Enter to keep awake with no timeout, or type a duration: 30, 90m, 2h" on:0)"; exit; }
+fi
+
+case $q in
+  *[0-9]h) secs=$(( ${q%h} * 3600 )) ;;
+  *[0-9]m) secs=$(( ${q%m} * 60 )) ;;
+  *[0-9]s) secs=${q%s} ;;
+  *[0-9]) secs=$(( q * 60 )) ;;
+esac
+case ${q%[hms]} in ''|*[!0-9]*) secs= ;; esac
+if [ -z "$secs" ] || [ "$secs" -eq 0 ]; then
+  printf '{"items":[%s]}' "$(item "Not a duration: $q" "Use minutes or a unit: 30, 90m, 2h, 45s" "" false)"; exit
+fi
+until=$(date -r $(( $(date +%s) + secs )) +%H:%M)
+printf '{"items":[%s]}' "$(item "Keep awake until $until" "$status · caffeinate -is -t $secs" "on:$secs")"
+</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
 				<key>subtext</key>
-				<string>Toggle caffeinate -is</string>
-				<key>text</key>
+				<string></string>
+				<key>title</key>
 				<string>Caffeinate</string>
+				<key>type</key>
+				<integer>0</integer>
 				<key>withspace</key>
-				<false/>
+				<true/>
 			</dict>
 			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
+			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>A1111111-1111-4111-8111-111111111111</string>
 			<key>version</key>
-			<integer>1</integer>
+			<integer>3</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -72,12 +119,19 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>if pkill -f "^/usr/bin/caffeinate -is$"; then
-  echo "Caffeinate OFF"
-else
-  nohup /usr/bin/caffeinate -is &gt;/dev/null 2&gt;&amp;1 &amp;
-  echo "Caffeinate ON"
-fi</string>
+				<string>dir="${alfred_workflow_data:-$HOME/Library/Caches/caffeinate-alfred}"
+pkill -f '^/usr/bin/caffeinate -is( -t [0-9]+)?$'
+rm -f "$dir/end"
+case $1 in
+  on:0) nohup /usr/bin/caffeinate -is &gt;/dev/null 2&gt;&amp;1 &amp;
+        echo "Caffeinate ON (no timeout)" ;;
+  on:*) secs=${1#on:}
+        nohup /usr/bin/caffeinate -is -t "$secs" &gt;/dev/null 2&gt;&amp;1 &amp;
+        mkdir -p "$dir" &amp;&amp; echo $(( $(date +%s) + secs )) &gt; "$dir/end"
+        echo "Caffeinate ON until $(date -r $(( $(date +%s) + secs )) +%H:%M)" ;;
+  *) echo "Caffeinate OFF" ;;
+esac
+</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>

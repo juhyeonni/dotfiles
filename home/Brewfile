@@ -25,6 +25,7 @@ cask "hammerspoon"
 cask "alfred"
 cask "jordanbaird-ice@beta" # the beta runs on macOS 27; the stable cask is older
 cask "linearmouse"
+cask "betterdisplay"
 cask "keka"
 cask "iina"
 

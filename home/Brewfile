@@ -16,8 +16,12 @@ unless Hardware::CPU.intel?
   brew "tree-sitter-cli"
   brew "git-lfs"
   brew "gh"
+  brew "mas"
 end
 
 cask "ghostty"
 cask "karabiner-elements"
 cask "hammerspoon"
+
+# App Store apps need `mas` and a signed-in App Store account
+mas "Magnet", id: 441258766

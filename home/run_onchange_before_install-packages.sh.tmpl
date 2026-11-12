@@ -8,14 +8,17 @@ if ! command -v brew >/dev/null 2>&1; then
 	echo "Homebrew is not installed. Install it from https://brew.sh, then run chezmoi apply again." >&2
 	exit 1
 fi
-brew bundle --file="{{ joinPath .chezmoi.sourceDir "Brewfile" }}"
 {{- if eq .chezmoi.arch "amd64" }}
 if ! command -v mise >/dev/null 2>&1; then
 	echo "mise is not installed. Install it from https://mise.jdx.dev, then run chezmoi apply again." >&2
 	exit 1
 fi
 # The before-script runs ahead of file deployment, so read the config from the source tree.
-MISE_GLOBAL_CONFIG_FILE="{{ joinPath .chezmoi.sourceDir "dot_config/mise/config.toml" }}" mise install
+# mise goes first: the Brewfile's mas entries need the mas it installs.
+export MISE_GLOBAL_CONFIG_FILE="{{ joinPath .chezmoi.sourceDir "dot_config/mise/config.toml" }}"
+mise install
+PATH="$(mise bin-paths | tr '\n' ':')$PATH"
 {{- end }}
+brew bundle --file="{{ joinPath .chezmoi.sourceDir "Brewfile" }}"
 
 {{- end }}

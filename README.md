@@ -20,6 +20,7 @@ Claude Code and pi run in herdr panes. Managed with [chezmoi](https://www.chezmo
 | Browser | Vimium link hint CSS | `vimium/` (repo root, not deployed) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
 | Launcher | Alfred 5 | `alfred/` (repo root, Alfred's sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
+| Windows | Magnet | `magnet/` (repo root, imported by `run_onchange_after_magnet-settings.sh.tmpl`) | — |
 
 `.chezmoiroot` points chezmoi at `home/`, so only what lives there is deployed. `dot_` becomes a
 leading `.`, and `executable_` sets the execute bit. `docs/` is English only.
@@ -39,6 +40,8 @@ leading `.`, and `executable_` sets the execute bit. `docs/` is English only.
   target is missing.
 
 ## New machine
+
+Sign in to the App Store first: the Brewfile installs Magnet with `mas`.
 
 ```bash
 brew install chezmoi                       # Homebrew first: https://brew.sh
@@ -76,3 +79,11 @@ chezmoi apply    # write the repo's state into the home directory
 Files are copies, not links. After editing through the home path, run `chezmoi re-add`. This
 matters most for files their own program rewrites: `karabiner.json` and Claude Code's
 `settings.json`. Check `chezmoi diff` before `chezmoi apply`.
+
+Magnet keeps its settings in `defaults`, not a file. After changing shortcuts in Magnet, export them
+back into the repo:
+
+```bash
+defaults export com.crowdcafe.windowmagnet magnet/com.crowdcafe.windowmagnet.plist
+plutil -convert xml1 magnet/com.crowdcafe.windowmagnet.plist
+```

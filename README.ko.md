@@ -20,6 +20,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 | 브라우저 | Vimium 링크 힌트 CSS | `vimium/` (repo 루트, 배포 안 함) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
 | 런처 | Alfred 5 | `alfred/` (repo 루트, Alfred sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
+| 창 배치 | Magnet | `magnet/` (repo 루트, `run_onchange_after_magnet-settings.sh.tmpl` 이 가져옴) | — |
 
 `.chezmoiroot` 가 `home/` 을 가리켜서 그 아래만 배포된다. `dot_` 는 맨 앞 `.`, `executable_` 은
 실행 비트가 된다. `docs/` 는 영어로만 쓴다.
@@ -37,6 +38,8 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 - zsh 는 깔린 런타임만 켠다. `rc.d/` 의 각 파일은 대상이 없으면 아무 일도 하지 않는다.
 
 ## 새 머신
+
+App Store 에 먼저 로그인한다. Brewfile 이 Magnet 을 `mas` 로 설치한다.
 
 ```bash
 brew install chezmoi                       # Homebrew 먼저: https://brew.sh
@@ -74,3 +77,10 @@ chezmoi apply    # repo 상태를 홈에 쓰기
 파일은 링크가 아니라 복사본이다. 홈 경로에서 고쳤으면 `chezmoi re-add` 를 한다. 프로그램이 스스로
 고쳐 쓰는 `karabiner.json`, Claude Code 의 `settings.json` 은 특히 그렇다. `chezmoi apply` 전에
 `chezmoi diff` 를 본다.
+
+Magnet 은 설정을 파일이 아니라 `defaults` 에 둔다. Magnet 에서 단축키를 바꿨으면 repo 로 내보낸다.
+
+```bash
+defaults export com.crowdcafe.windowmagnet magnet/com.crowdcafe.windowmagnet.plist
+plutil -convert xml1 magnet/com.crowdcafe.windowmagnet.plist
+```

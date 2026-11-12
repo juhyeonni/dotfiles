@@ -1,0 +1,16 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Magnet settings hash: {{ include (joinPath .chezmoi.workingTree "magnet/com.crowdcafe.windowmagnet.plist") | sha256sum }}
+# chezmoi reruns this only when the hash above changes, i.e. when the repo's Magnet settings change.
+# `defaults import` replaces the whole domain; what it drops (window frames, counters) Magnet recreates.
+set -e
+
+[ -d /Applications/Magnet.app ] || exit 0
+
+osascript -e 'quit app "Magnet"'
+# quit returns before the app exits; importing while it runs lets it write the old settings back
+i=0
+while pgrep -x Magnet >/dev/null && [ $i -lt 50 ]; do sleep 0.1; i=$((i + 1)); done
+defaults import com.crowdcafe.windowmagnet "{{ joinPath .chezmoi.workingTree "magnet/com.crowdcafe.windowmagnet.plist" }}"
+open -a Magnet
+{{ end -}}

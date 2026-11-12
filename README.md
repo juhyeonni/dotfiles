@@ -18,6 +18,7 @@ Claude Code and pi run in herdr panes. Managed with [chezmoi](https://www.chezmo
 | git | git | `dot_gitconfig.tmpl`, `dot_config/git/ignore` | — |
 | Packages | Homebrew (mise on Intel) | `Brewfile`, `dot_config/mise/` | — |
 | Browser | Vimium link hint CSS | `vimium/` (repo root, not deployed) | [vimium](docs/vimium.md) |
+| Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
 
 `.chezmoiroot` points chezmoi at `home/`, so only what lives there is deployed. `dot_` becomes a
 leading `.`, and `executable_` sets the execute bit. `docs/` is English only.

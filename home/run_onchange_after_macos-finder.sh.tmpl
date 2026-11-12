@@ -1,0 +1,30 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Finder defaults. chezmoi reruns this only when the script changes.
+set -e
+
+d=com.apple.finder
+
+# Show where you are: path bar, status bar, and the full POSIX path in the title.
+defaults write $d ShowPathbar -bool true
+defaults write $d ShowStatusBar -bool true
+defaults write $d _FXShowPosixPathInTitle -bool true
+
+# Hidden files and extensions always visible (dotfiles work). cmd+shift+. toggles hidden files.
+defaults write $d AppleShowAllFiles -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# List view by default, folders first, no rename warning.
+# The view style only applies to folders that have no per-folder setting yet.
+defaults write $d FXPreferredViewStyle -string Nlsv
+defaults write $d _FXSortFoldersFirst -bool true
+defaults write $d FXEnableExtensionChangeWarning -bool false
+
+# Search the current folder (SCcf), not the whole Mac; new windows open in $HOME (PfHm).
+defaults write $d FXDefaultSearchScope -string SCcf
+defaults write $d NewWindowTarget -string PfHm
+defaults write $d NewWindowTargetPath -string "file://$HOME/"
+
+# Finder does not watch its preferences; restarting closes and reopens open windows.
+killall Finder
+{{ end -}}

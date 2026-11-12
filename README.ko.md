@@ -18,6 +18,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 | git | git | `dot_gitconfig.tmpl`, `dot_config/git/ignore` | — |
 | 패키지 | Homebrew (Intel 은 mise) | `Brewfile`, `dot_config/mise/` | — |
 | 브라우저 | Vimium 링크 힌트 CSS | `vimium/` (repo 루트, 배포 안 함) | [vimium](docs/vimium.md) |
+| Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
 
 `.chezmoiroot` 가 `home/` 을 가리켜서 그 아래만 배포된다. `dot_` 는 맨 앞 `.`, `executable_` 은
 실행 비트가 된다. `docs/` 는 영어로만 쓴다.

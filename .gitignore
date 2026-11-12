@@ -17,6 +17,7 @@ home/dot_config/nvim/lua/plugins/local.lua
 # Local agent tooling
 /.claude/
 /.agents/
+/skills-lock.json
 
 # Alfred caches (Alfred Remote pages and icons, regenerated)
 alfred/Alfred.alfredpreferences/remote/

@@ -75,7 +75,9 @@
     "macro-loop-band@juhyeonni": true,
     "macro-loop@juhyeonni": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "humanizer@humanizer": true
+    "humanizer@humanizer": true,
+    "impeccable@impeccable": true,
+    "mcp-google-map@cablate-maps": true
   },
   "extraKnownMarketplaces": {
     "juhyeonni": {
@@ -100,6 +102,12 @@
       "source": {
         "source": "github",
         "repo": "blader/humanizer"
+      }
+    },
+    "cablate-maps": {
+      "source": {
+        "source": "github",
+        "repo": "cablate/mcp-google-map"
       }
     }
   },

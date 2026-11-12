@@ -4,3 +4,6 @@
 # mise shims, so non-interactive shells find the Intel Mac CLI tools too (gh for git auth, for one).
 # Interactive shells get the full `mise activate` in .zshrc.
 [ -d "$HOME/.local/share/mise/shims" ] && export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+# Machine-local secrets (API keys and the like), never in the repo
+[ -f "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"

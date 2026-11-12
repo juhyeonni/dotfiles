@@ -29,6 +29,7 @@ git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fz
 | Core | `.zshrc` | Always |
 | Optional | `.config/zsh/rc.d/*.zsh` | In numeric order; each file checks for its own target |
 | Machine-local | `~/.zshrc.local` | If it exists; never in the repo |
+| Machine-local env | `~/.zshenv.local` (sourced by `.zshenv`) | Secrets every zsh needs, including non-interactive ones; never in the repo |
 
 | `rc.d` file | Does |
 |-------------|------|

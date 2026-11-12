@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>customSites</key>
+	<dict>
+		<key>1428E310-D3DD-40E2-8781-757651D05395</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>dja</string>
+			<key>text</key>
+			<string>NaverDict(Ja) for {query}</string>
+			<key>url</key>
+			<string>https://ja.dict.naver.com/#/search?query={query}</string>
+		</dict>
+		<key>2DE109B6-8422-4E81-B94F-8327F3B8AC09</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>dko</string>
+			<key>text</key>
+			<string>NaverDict(Ko) for {query}</string>
+			<key>url</key>
+			<string>https://ko.dict.naver.com/#/search?query={query}</string>
+		</dict>
+		<key>6D729FF5-A962-45A2-AAA2-18A3C7C128E0</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>maps</string>
+			<key>text</key>
+			<string>Open Google maps</string>
+			<key>url</key>
+			<string>https://maps.google.com/</string>
+		</dict>
+		<key>FD1582D3-DBC2-4D56-873B-1F07FCF9FA62</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>den</string>
+			<key>text</key>
+			<string>NaverDict(En) for {query}</string>
+			<key>url</key>
+			<string>https://en.dict.naver.com/#/search?query={query}</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

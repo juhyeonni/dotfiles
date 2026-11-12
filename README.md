@@ -19,6 +19,7 @@ Claude Code and pi run in herdr panes. Managed with [chezmoi](https://www.chezmo
 | Packages | Homebrew (mise on Intel) | `Brewfile`, `dot_config/mise/` | — |
 | Browser | Vimium link hint CSS | `vimium/` (repo root, not deployed) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
+| Launcher | Alfred 5 | `alfred/` (repo root, Alfred's sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
 
 `.chezmoiroot` points chezmoi at `home/`, so only what lives there is deployed. `dot_` becomes a
 leading `.`, and `executable_` sets the execute bit. `docs/` is English only.
@@ -54,8 +55,12 @@ What chezmoi does not do, in order:
 3. Open nvim once so its plugins install, then run `:MasonInstall …`
    ([list](home/dot_config/nvim/REQUIREMENTS.md)).
 4. Install the `MuxJK` font, which Ghostty uses.
-5. Grant Input Monitoring to Karabiner and Accessibility to Hammerspoon.
+5. Grant Input Monitoring to Karabiner and Accessibility to Hammerspoon and Alfred (snippet
+   expansion needs it).
 6. Paste `vimium/link-hints.css` into Vimium's options page ([vimium](docs/vimium.md)).
+7. Open Alfred once, then run `chezmoi apply` again. `run_after_alfred-sync-folder.sh` points
+   Alfred's sync folder at `alfred/`; Alfred writes there directly, so chezmoi does not deploy it
+   and changes land in the repo as you make them.
 
 On Intel Macs the CLI tools come from [mise](https://mise.jdx.dev) instead of Homebrew; install
 mise first. Language runtimes are installed when a project needs them.

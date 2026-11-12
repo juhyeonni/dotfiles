@@ -19,6 +19,7 @@ herdr pane 에 띄워 쓴다. [chezmoi](https://www.chezmoi.io/) 로 관리한�
 | 패키지 | Homebrew (Intel 은 mise) | `Brewfile`, `dot_config/mise/` | — |
 | 브라우저 | Vimium 링크 힌트 CSS | `vimium/` (repo 루트, 배포 안 함) | [vimium](docs/vimium.md) |
 | Finder | `defaults write` | `run_onchange_after_macos-finder.sh.tmpl` | — |
+| 런처 | Alfred 5 | `alfred/` (repo 루트, Alfred sync folder), `run_after_alfred-sync-folder.sh.tmpl` | — |
 
 `.chezmoiroot` 가 `home/` 을 가리켜서 그 아래만 배포된다. `dot_` 는 맨 앞 `.`, `executable_` 은
 실행 비트가 된다. `docs/` 는 영어로만 쓴다.
@@ -52,8 +53,12 @@ chezmoi 가 하지 않는 일. 순서대로:
 3. nvim 을 한 번 열어 플러그인을 깔고, `:MasonInstall …` 을 실행한다
    ([목록](home/dot_config/nvim/REQUIREMENTS.md)).
 4. Ghostty 가 쓰는 `MuxJK` 폰트를 설치한다.
-5. Karabiner 에 입력 모니터링, Hammerspoon 에 손쉬운 사용 권한을 준다.
+5. Karabiner 에 입력 모니터링, Hammerspoon 과 Alfred 에 손쉬운 사용 권한을 준다 (Alfred 스니펫 자동 입력에
+   필요).
 6. `vimium/link-hints.css` 를 Vimium 옵션 페이지에 붙여넣는다 ([vimium](docs/vimium.md)).
+7. Alfred 를 한 번 연 뒤 `chezmoi apply` 를 다시 실행한다. `run_after_alfred-sync-folder.sh` 가
+   Alfred sync folder 를 `alfred/` 로 지정한다. Alfred 가 그 폴더에 직접 쓰므로 chezmoi 는 배포하지
+   않고, 바꾼 설정이 바로 repo 에 남는다.
 
 Intel Mac 은 CLI 도구를 Homebrew 대신 [mise](https://mise.jdx.dev) 로 깐다. mise 를 먼저
 설치한다. 언어 런타임은 프로젝트가 필요로 할 때 깐다.

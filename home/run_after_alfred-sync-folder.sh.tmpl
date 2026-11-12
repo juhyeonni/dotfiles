@@ -1,0 +1,27 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Point Alfred at the repo's alfred/ as its sync folder. Runs on every apply and exits early once set,
+# because Alfred only creates prefs.json on first launch.
+# Alfred keeps the location in prefs.json and in its defaults domain; this is not a documented API.
+set -e
+
+folder="{{ joinPath .chezmoi.workingTree "alfred" }}"
+prefs="$HOME/Library/Application Support/Alfred/prefs.json"
+target="$folder/Alfred.alfredpreferences"
+
+[ -d "/Applications/Alfred 5.app" ] || exit 0
+if [ ! -f "$prefs" ]; then
+	echo "Alfred has not been launched yet; open it once, then run chezmoi apply again." >&2
+	exit 0
+fi
+[ "$(plutil -extract current raw "$prefs" 2>/dev/null)" = "$target" ] && exit 0
+
+running=$(pgrep -x Alfred >/dev/null && echo 1 || true)
+osascript -e 'quit app "Alfred Preferences"' -e 'quit app "Alfred 5"'
+cp "$prefs" "$prefs.bak"
+defaults write com.runningwithcrayons.Alfred-Preferences syncfolder -string "$folder"
+plutil -replace current -string "$target" "$prefs"
+plutil -replace syncfolders -json "{\"5\":\"$folder\"}" "$prefs"
+echo "Alfred sync folder set to $folder (previous prefs.json kept as prefs.json.bak)"
+if [ -n "$running" ]; then open -a "Alfred 5"; fi
+{{ end -}}

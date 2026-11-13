@@ -90,5 +90,11 @@ claude @fresh --new --mirror > /dev/null
 expect AC6-new '{"mcpServers":{"gh":{"command":"gh"}}}' "$(jq -c . $A/fresh/.claude.json)"
 expect AC6-new-mode 600 "$(stat -f %Lp $A/fresh/.claude.json)"
 
+# Like every rc.d file, it does nothing when its target is missing.
+expect no-claude none "$(PATH=/usr/bin:/bin zsh -fc "source $repo/home/dot_config/zsh/rc.d/40-claude.zsh; whence -w claude | cut -d' ' -f2")"
+
+# A second @name that matches is passed on as a prompt.
+expect AC1-second "dir=$A/work"$'\n'"arg=@work" "$(claude @work @work)"
+
 (( fails )) && { print "$fails failed"; exit 1 }
 print "all passed"

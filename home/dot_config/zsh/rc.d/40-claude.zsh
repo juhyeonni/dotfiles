@@ -11,6 +11,8 @@
 #   claude @x                  open a session as x
 #   claude @x --mirror         restore the account's links after ~/.claude gains an entry
 
+(( $+commands[claude] )) || return 0
+
 claude() {
   local root=$HOME/.claude-accounts arg name new
   (( ${argv[(Ie)--new]} )) && new=1
@@ -29,7 +31,8 @@ claude() {
     case $arg in
       --new) ;;
       --mirror) mirror=1 ;;
-      *) [[ -z $skipped && $arg == @$name ]] && skipped=1 || rest+=("$arg") ;;
+      @$name) [[ -n $skipped ]] && rest+=("$arg"); skipped=1 ;;
+      *) rest+=("$arg") ;;
     esac
   done
 

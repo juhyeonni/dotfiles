@@ -37,6 +37,7 @@ git clone --depth 1 https://github.com/Aloxaf/fzf-tab                     $ZC/fz
 | `10-langs.zsh` | Language runtimes that are installed |
 | `20-cloud.zsh` | Google Cloud SDK, if installed |
 | `30-github.zsh` | Exports the GitHub token from the `gh` keyring for the GitHub MCP server |
+| `40-claude.zsh` | `claude @name` runs Claude Code as another account ([accounts](claude-code.md#accounts)) |
 | `90-sdkman.zsh` | SDKMAN, last because it prepends itself to `PATH` |
 
 On a machine with no runtimes, every `rc.d` file does nothing. Install a runtime when a project

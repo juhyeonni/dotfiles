@@ -10,18 +10,27 @@
 #   claude @x --new            create an independent account
 #   claude @x                  open a session as x
 #   claude @x --mirror         restore the account's links after ~/.claude gains an entry
+#   claude @x --default        make x the account plain `claude` opens (kept in ~/.claude-accounts/.default)
+#
+# With a default set, plain `claude` runs as that account unless CLAUDE_CONFIG_DIR is already set.
+# Use `command claude` to open the untouched ~/.claude.
 
 (( $+commands[claude] )) || return 0
 
 claude() {
-  local root=$HOME/.claude-accounts arg name new
+  local root=$HOME/.claude-accounts arg name new default
   (( ${argv[(Ie)--new]} )) && new=1
+  (( ${argv[(Ie)--default]} )) && default=1
   for arg in "$@"; do
     [[ $arg =~ '^@[A-Za-z0-9_-]+$' ]] || continue
     [[ -n $new || -d $root/${arg#@} ]] || continue
     name=${arg#@}
     break
   done
+  if [[ -z $name && -z $CLAUDE_CONFIG_DIR && -f $root/.default ]]; then
+    name=$(<$root/.default)
+    [[ $name =~ '^[A-Za-z0-9_-]+$' && -d $root/$name ]] || name=
+  fi
   [[ -z $name ]] && { command claude "$@"; return }
 
   local dir=$root/$name mirror
@@ -31,6 +40,7 @@ claude() {
     case $arg in
       --new) ;;
       --mirror) mirror=1 ;;
+      --default) ;;
       @$name) [[ -n $skipped ]] && rest+=("$arg"); skipped=1 ;;
       *) rest+=("$arg") ;;
     esac
@@ -38,6 +48,7 @@ claude() {
 
   [[ -n $new ]] && mkdir -p -m 700 "$dir"
   [[ -n $mirror ]] && _claude_mirror "$dir"
+  [[ -n $default ]] && print -r -- $name > $root/.default
   CLAUDE_CONFIG_DIR=$dir command claude "${rest[@]}"
 }
 

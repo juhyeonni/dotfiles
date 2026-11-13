@@ -96,5 +96,17 @@ expect no-claude none "$(PATH=/usr/bin:/bin zsh -fc "source $repo/home/dot_confi
 # A second @name that matches is passed on as a prompt.
 expect AC1-second "dir=$A/work"$'\n'"arg=@work" "$(claude @work @work)"
 
+# Default account: --default records it, and plain claude then opens it.
+expect default-unset "dir=unset"$'\n'"arg=-c" "$(claude -c)"
+expect default-flag "dir=$A/work"$'\n'"arg=-c" "$(claude @work --default -c)"
+expect default-file work "$(<$A/.default)"
+expect default-plain "dir=$A/work"$'\n'"arg=-c" "$(claude -c)"
+expect default-explicit "dir=$A/new" "$(claude @new)"
+expect default-env "dir=/keep" "$(CLAUDE_CONFIG_DIR=/keep claude)"
+expect default-new "dir=$A/d2" "$(claude @d2 --new --default)"
+expect default-moved "dir=$A/d2" "$(claude)"
+print gone > $A/.default
+expect default-stale "dir=unset"$'\n'"arg=-c" "$(claude -c)"
+
 (( fails )) && { print "$fails failed"; exit 1 }
 print "all passed"

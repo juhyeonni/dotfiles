@@ -46,7 +46,7 @@ Claude Code rewrites `settings.json` itself. After changing settings inside Clau
 `claude @name` runs Claude Code as the subscription account `name`, with
 `CLAUDE_CONFIG_DIR=~/.claude-accounts/<name>`. Claude Code keys its Keychain login to that
 directory, so each account keeps its own `/login` and several accounts run at once. Plain `claude`
-still uses `~/.claude`. The function lives in `home/dot_config/zsh/rc.d/40-claude.zsh`; account
+still uses `~/.claude` until an account is marked with `--default`. The function lives in `home/dot_config/zsh/rc.d/40-claude.zsh`; account
 names and logins stay on the machine.
 
 ```bash
@@ -54,11 +54,17 @@ claude @work --new --mirror   # create an account that shares the default config
 claude @side --new            # create an independent account, then /login
 claude @work                  # open a session as work; cld @work works too
 claude @work --mirror         # restore links after ~/.claude gains a new entry
+claude @work --default        # make work the account plain `claude` opens
 ```
 
 `@name` counts only when `~/.claude-accounts/<name>` exists or `--new` is given, and only the first
 one counts. Anything else, such as `-p @README.md` or a typo, reaches Claude Code as a prompt.
-`--new` and `--mirror` never reach Claude Code.
+`--new`, `--mirror` and `--default` never reach Claude Code.
+
+`--default` writes the name to `~/.claude-accounts/.default`. Plain `claude` then runs as that account,
+unless `CLAUDE_CONFIG_DIR` is already set or the recorded account no longer exists. `command claude`
+opens the untouched `~/.claude`. The ccstatusline account widget shows `@name` when
+`CLAUDE_CONFIG_DIR` is set and the login email otherwise, so it follows the default on its own.
 
 `--mirror` symlinks these entries of `~/.claude` when they exist: `CLAUDE.md`, `settings.json`,
 `keybindings.json`, `skills/`, `hooks/`, `plugins/`, `commands/`, `agents/`, `rules/` and the two

@@ -1,0 +1,82 @@
+{
+  "version": 4,
+  "lines": [
+    [
+      {
+        "id": "1",
+        "type": "model",
+        "color": "cyan",
+        "rawValue": true
+      },
+      {
+        "id": "2",
+        "type": "separator"
+      },
+      {
+        "id": "3",
+        "type": "context-length",
+        "color": "brightBlack",
+        "rawValue": true
+      },
+      {
+        "id": "4",
+        "type": "separator"
+      },
+      {
+        "id": "5",
+        "type": "git-branch",
+        "color": "magenta"
+      },
+      {
+        "id": "6",
+        "type": "separator"
+      },
+      {
+        "id": "7",
+        "type": "git-changes",
+        "color": "yellow"
+      },
+      {
+        "id": "8",
+        "type": "flex-separator"
+      },
+      {
+        "id": "9",
+        "type": "custom-command",
+        "color": "blue",
+        "commandPath": "if [ -n \"$CLAUDE_CONFIG_DIR\" ]; then echo \"@$(basename \"$CLAUDE_CONFIG_DIR\")\"; else jq -r '.oauthAccount.emailAddress // empty' ~/.claude.json; fi"
+      }
+    ],
+    [
+      {
+        "id": "547a3a6e-b646-4bb4-b54b-39ec7e86c604",
+        "type": "custom-command",
+        "color": "blue",
+        "commandPath": "jq -r 'def col(p): if p >= 90 then \"\\u001b[31m\" elif p >= 70 then \"\\u001b[33m\" else \"\" end;\ndef two: tostring | if length < 2 then \"0\" + . else . end;\ndef fmt(s): if s <= 0 then \"0m\"\n  elif s >= 86400 then \"\\(s / 86400 | floor)d\\(s % 86400 / 3600 | floor)h\"\n  else \"\\(s / 3600 | floor)h\\(s % 3600 / 60 | floor | two)m\" end;\ndef seg(l; w): if w.used_percentage == null then empty\n  else \"\\(col(w.used_percentage))\\(l) \\(w.used_percentage | round)%\\u001b[0m \\u001b[90m↻\\(fmt((w.resets_at // now) - now))\\u001b[0m\" end;\n.rate_limits // {} | [seg(\"5h\"; .five_hour), seg(\"wk\"; .seven_day)] | join(\" \\u001b[90m·\\u001b[0m \")'",
+        "preserveColors": true,
+        "timeout": 1000
+      }
+    ],
+    []
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
+  }
+}

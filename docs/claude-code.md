@@ -40,3 +40,36 @@ Without the script, Claude Code warns about the hook and starts normally.
 
 Claude Code rewrites `settings.json` itself. After changing settings inside Claude Code, run
 `chezmoi re-add`.
+
+## Accounts
+
+`claude @name` runs Claude Code as the subscription account `name`, with
+`CLAUDE_CONFIG_DIR=~/.claude-accounts/<name>`. Claude Code keys its Keychain login to that
+directory, so each account keeps its own `/login` and several accounts run at once. Plain `claude`
+still uses `~/.claude`. The function lives in `home/dot_config/zsh/rc.d/40-claude.zsh`; account
+names and logins stay on the machine.
+
+```bash
+claude @work --new --mirror   # create an account that shares the default config, then /login
+claude @side --new            # create an independent account, then /login
+claude @work                  # open a session as work; cld @work works too
+claude @work --mirror         # restore links after ~/.claude gains a new entry
+```
+
+`@name` counts only when `~/.claude-accounts/<name>` exists or `--new` is given, and only the first
+one counts. Anything else, such as `-p @README.md` or a typo, reaches Claude Code as a prompt.
+`--new` and `--mirror` never reach Claude Code.
+
+`--mirror` symlinks these entries of `~/.claude` when they exist: `CLAUDE.md`, `settings.json`,
+`keybindings.json`, `skills/`, `hooks/`, `plugins/`, `commands/`, `agents/`, `rules/` and the two
+statusline scripts. Since chezmoi deploys into `~/.claude`, `chezmoi apply` reaches mirrored
+accounts too. A real file in the account directory is the account's own override: delete a link
+and put a file in its place, and `--mirror` leaves it alone. Claude Code saves `settings.json`
+through the link, so links break only when `~/.claude` gains an entry; run `--mirror` again then.
+
+Never linked: `projects/` and `history.jsonl`, so history stays per account, and `.claude.json`,
+which holds the account's login and caches. `--mirror` copies only `mcpServers` from
+`~/.claude.json` into the account's `.claude.json`.
+
+To remove an account, `/logout` inside it, then `rm -r ~/.claude-accounts/<name>`. The tests run
+with `zsh tests/claude-accounts.zsh`.
